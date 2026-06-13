@@ -1,3 +1,7 @@
+import { useCallback } from 'react'
+import { useAllauthContext } from './useAllauthContext'
+import { useResource } from './useResource'
+import { ensureOk } from '../errors'
 import type {
   AuthFlowResponse,
   AuthProcess,
@@ -29,5 +33,47 @@ export interface UseSocialAuthResult {
 
 /** Third-party (social) authentication and connected accounts. */
 export function useSocialAuth(): UseSocialAuthResult {
-  throw new Error('not implemented')
+  const { client, applyResponse } = useAllauthContext()
+  const fetcher = useCallback(
+    () => client.getProviders().then((response) => response.data ?? []),
+    [client],
+  )
+  const { data, reload } = useResource(fetcher)
+
+  const redirectToProvider = useCallback(
+    (providerId: string, callbackUrl: string, process: AuthProcess = 'login') => {
+      client.redirectToProvider(providerId, callbackUrl, process)
+    },
+    [client],
+  )
+
+  const authenticateByToken = useCallback(
+    async (
+      providerId: string,
+      token: ProviderToken,
+      process: AuthProcess = 'login',
+    ) => applyResponse(await client.providerToken(providerId, token, process)),
+    [client, applyResponse],
+  )
+
+  const providerSignup = useCallback(
+    async (data: SignupData) => applyResponse(await client.providerSignup(data)),
+    [client, applyResponse],
+  )
+
+  const disconnect = useCallback(
+    async (account: ProviderAccount) => {
+      ensureOk(await client.disconnectProvider(account.provider.id, account.uid))
+      await reload()
+    },
+    [client, reload],
+  )
+
+  return {
+    connections: data ?? [],
+    redirectToProvider,
+    authenticateByToken,
+    providerSignup,
+    disconnect,
+  }
 }

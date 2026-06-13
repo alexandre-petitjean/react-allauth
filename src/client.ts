@@ -3,12 +3,15 @@ import type {
   AuthenticationData,
   Authenticator,
   AuthFlowResponse,
+  AuthProcess,
   ChangePasswordInput,
   ClientType,
   Config,
   ConfirmPasswordResetInput,
   EmailAddress,
   LoginCredentials,
+  ProviderAccount,
+  ProviderToken,
   ReauthenticateData,
   SensitiveRecoveryCodesAuthenticator,
   SignupData,
@@ -183,5 +186,68 @@ export class AllauthClient {
       'POST',
       '/account/authenticators/recovery-codes',
     )
+  }
+
+  getProviders(): Promise<AllauthResponse<ProviderAccount[]>> {
+    return this.request<ProviderAccount[]>('GET', '/account/providers')
+  }
+
+  disconnectProvider(
+    provider: string,
+    account: string,
+  ): Promise<AllauthResponse<ProviderAccount[]>> {
+    return this.request<ProviderAccount[]>('DELETE', '/account/providers', {
+      provider,
+      account,
+    })
+  }
+
+  providerToken(
+    provider: string,
+    token: ProviderToken,
+    process: AuthProcess,
+  ): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/provider/token', {
+      provider,
+      token,
+      process,
+    })
+  }
+
+  providerSignup(data: SignupData): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/provider/signup', data)
+  }
+
+  // A full-page form POST: the browser follows the provider's OAuth redirect.
+  redirectToProvider(
+    providerId: string,
+    callbackUrl: string,
+    process: AuthProcess,
+  ): void {
+    if (typeof document === 'undefined') {
+      throw new Error('redirectToProvider requires a browser environment')
+    }
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = this.endpoint('/auth/provider/redirect')
+
+    const fields: Record<string, string> = {
+      provider: providerId,
+      callback_url: callbackUrl,
+      process,
+    }
+    const csrfToken = readCookie('csrftoken')
+    if (csrfToken) fields.csrfmiddlewaretoken = csrfToken
+
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = name
+      input.value = value
+      form.appendChild(input)
+    }
+
+    document.body.appendChild(form)
+    form.submit()
   }
 }
