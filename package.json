@@ -21,6 +21,7 @@
   },
   "sideEffects": false,
   "scripts": {
+    "dev": "vite playground",
     "build": "vite build",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint .",
