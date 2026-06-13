@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"],
+    "paths": {
+      "react-allauth": ["../src/index.ts"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}
