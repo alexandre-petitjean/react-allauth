@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AllauthClient } from './client'
 import { AllauthContext } from './context'
-import type { AuthFlowResponse, ClientType } from './types'
+import { toError } from './errors'
+import type { AuthFlowResponse } from './types'
 
 export interface AllauthProviderProps {
   /** Base URL of the django-allauth server. */
   baseUrl: string
-  /** Headless endpoint family to target. Defaults to `browser`. */
-  client?: ClientType
   children: ReactNode
 }
 
@@ -21,18 +20,14 @@ function isAuthenticationResponse(response: AuthFlowResponse): boolean {
 
 /**
  * Provides the allauth client and session state to every hook in the tree.
- * Wrap your app once, near the root. The current session is fetched on mount.
+ * Wrap your app once, near the root. The current session is fetched on mount;
+ * a failed check is surfaced as `sessionError` so consumers never hang in
+ * `loading`.
  */
-export function AllauthProvider({
-  baseUrl,
-  client = 'browser',
-  children,
-}: AllauthProviderProps) {
-  const allauthClient = useMemo(
-    () => new AllauthClient({ baseUrl, client }),
-    [baseUrl, client],
-  )
+export function AllauthProvider({ baseUrl, children }: AllauthProviderProps) {
+  const client = useMemo(() => new AllauthClient({ baseUrl }), [baseUrl])
   const [session, setSession] = useState<AuthFlowResponse | null>(null)
+  const [sessionError, setSessionError] = useState<Error | null>(null)
 
   const applyResponse = useCallback((response: AuthFlowResponse) => {
     if (isAuthenticationResponse(response)) setSession(response)
@@ -41,17 +36,22 @@ export function AllauthProvider({
 
   useEffect(() => {
     let active = true
-    void allauthClient.getSession().then((result) => {
-      if (active) applyResponse(result)
-    })
+    client
+      .getSession()
+      .then((result) => {
+        if (active) applyResponse(result)
+      })
+      .catch((caught: unknown) => {
+        if (active) setSessionError(toError(caught))
+      })
     return () => {
       active = false
     }
-  }, [allauthClient, applyResponse])
+  }, [client, applyResponse])
 
   const value = useMemo(
-    () => ({ client: allauthClient, session, applyResponse }),
-    [allauthClient, session, applyResponse],
+    () => ({ client, session, sessionError, applyResponse }),
+    [client, session, sessionError, applyResponse],
   )
 
   return (

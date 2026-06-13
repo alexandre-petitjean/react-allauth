@@ -19,6 +19,23 @@ describe('useAuth', () => {
   it('resolves to unauthenticated once the session loads', async () => {
     const result = await renderAuth()
     expect(result.current.user).toBeNull()
+    expect(result.current.error).toBeNull()
+  })
+
+  it('does not hang in loading when the session check fails (non-JSON)', async () => {
+    server.use(
+      http.get(`${v1}/auth/session`, () =>
+        new HttpResponse('<html>Bad Gateway</html>', {
+          status: 502,
+          headers: { 'Content-Type': 'text/html' },
+        }),
+      ),
+    )
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+    expect(result.current.error).toBeInstanceOf(Error)
+    expect(result.current.user).toBeNull()
   })
 
   it('authenticates on login success', async () => {

@@ -18,6 +18,28 @@ export class AllauthRequestError extends Error {
   }
 }
 
+/**
+ * Thrown when a request never produced a valid allauth envelope: network
+ * failure, non-JSON body (HTML error page, empty response), or gateway error.
+ * Distinct from {@link AllauthRequestError}, which represents a well-formed
+ * error response from the API.
+ */
+export class AllauthTransportError extends Error {
+  /** HTTP status, when a response was received. */
+  readonly status?: number
+
+  constructor(message: string, options?: { cause?: unknown; status?: number }) {
+    super(message, options?.cause === undefined ? undefined : { cause: options.cause })
+    this.name = 'AllauthTransportError'
+    this.status = options?.status
+  }
+}
+
+/** Normalize an unknown thrown value into an `Error`. */
+export function toError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value))
+}
+
 /** Throw {@link AllauthRequestError} on an error response; otherwise return it. */
 export function ensureOk<T extends AllauthResponse>(response: T): T {
   if (response.status >= 400) throw new AllauthRequestError(response)

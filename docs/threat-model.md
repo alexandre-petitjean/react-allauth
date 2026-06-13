@@ -40,9 +40,10 @@ application and its operators.
 
 ## Known trade-offs
 
-- **Cookie-based, browser-only.** The default browser client uses cookies, which
-  means cross-origin setups require correct CORS and cookie configuration on the
-  backend. There is no React Native or SSR client.
+- **Cookie-based, browser-only.** Only the allauth `browser` client (cookie +
+  CSRF) is supported. The `app` client and its `X-Session-Token` strategy are
+  intentionally not implemented, so cross-origin setups require correct CORS and
+  cookie configuration on the backend. There is no React Native or SSR client.
 - **No custom cryptography.** All crypto (password hashing, token signing, TOTP,
   WebAuthn) is delegated to django-allauth. The library adds none of its own.
 - **Server is the source of truth.** Client-side flow state is a convenience

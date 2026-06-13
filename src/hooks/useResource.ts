@@ -5,6 +5,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react'
+import { toError } from '../errors'
 
 export interface Resource<T> {
   /** The fetched value, or `null` until the first load resolves. */
@@ -17,11 +18,6 @@ export interface Resource<T> {
   reload: () => Promise<void>
   /** Seed the value directly, e.g. from a mutation response that returns it. */
   setData: Dispatch<SetStateAction<T | null>>
-}
-
-/** Normalize an unknown thrown value into an `Error`. */
-function toError(value: unknown): Error {
-  return value instanceof Error ? value : new Error(String(value))
 }
 
 /**

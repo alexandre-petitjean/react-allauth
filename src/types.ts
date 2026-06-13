@@ -6,9 +6,9 @@
 // user becomes authenticated.
 //
 // Reference: https://docs.allauth.org/en/latest/headless/
-
-/** Which set of headless endpoints to talk to. */
-export type ClientType = 'browser' | 'app'
+//
+// This library targets the browser client only (cookie + CSRF based). The `app`
+// client family (X-Session-Token) is intentionally not supported.
 
 // ---------------------------------------------------------------------------
 // Response envelope
@@ -25,9 +25,6 @@ export interface AllauthResponse<TData = unknown> {
 export interface ResponseMeta {
   /** Whether the session is authenticated (or, on a 401, needs re-auth). */
   is_authenticated: boolean
-  /** Present for `app` clients only. */
-  session_token?: string
-  access_token?: string
   /** TOTP setup secret, present on the 404 from the TOTP status endpoint. */
   secret?: string
   /** TOTP provisioning URI, present alongside `secret` during setup. */

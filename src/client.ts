@@ -4,6 +4,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
 } from '@simplewebauthn/browser'
+import { AllauthTransportError } from './errors'
 import type {
   AllauthResponse,
   AuthenticationData,
@@ -11,7 +12,6 @@ import type {
   AuthFlowResponse,
   AuthProcess,
   ChangePasswordInput,
-  ClientType,
   Config,
   ConfirmPasswordResetInput,
   EmailAddress,
@@ -38,13 +38,11 @@ interface WebAuthnRequestOptions {
 export interface AllauthClientOptions {
   /** Base URL of the django-allauth server. */
   baseUrl: string
-  /** Headless endpoint family. */
-  client: ClientType
 }
 
-/** Build the versioned headless endpoint prefix, e.g. `<base>/_allauth/browser/v1`. */
-export function allauthV1Url(baseUrl: string, client: ClientType): string {
-  return `${baseUrl}/_allauth/${client}/v1`
+/** Build the versioned browser endpoint prefix, e.g. `<base>/_allauth/browser/v1`. */
+export function allauthV1Url(baseUrl: string): string {
+  return `${baseUrl}/_allauth/browser/v1`
 }
 
 /** Read a cookie value by name from `document.cookie`. */
@@ -68,8 +66,7 @@ export class AllauthClient {
   }
 
   private endpoint(path: string): string {
-    const { baseUrl, client } = this.options
-    return `${allauthV1Url(baseUrl, client)}${path}`
+    return `${allauthV1Url(this.options.baseUrl)}${path}`
   }
 
   async request<TData = AuthenticationData>(
@@ -79,19 +76,34 @@ export class AllauthClient {
   ): Promise<AllauthResponse<TData>> {
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
-    if (method !== 'GET' && this.options.client === 'browser') {
+    if (method !== 'GET') {
       const csrfToken = readCookie('csrftoken')
       if (csrfToken) headers['X-CSRFToken'] = csrfToken
     }
 
-    const response = await fetch(this.endpoint(path), {
-      method,
-      headers,
-      credentials: 'include',
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
+    let response: Response
+    try {
+      response = await fetch(this.endpoint(path), {
+        method,
+        headers,
+        credentials: 'include',
+        body: body === undefined ? undefined : JSON.stringify(body),
+      })
+    } catch (cause) {
+      throw new AllauthTransportError(
+        'Network request to the allauth server failed',
+        { cause },
+      )
+    }
 
-    return (await response.json()) as AllauthResponse<TData>
+    try {
+      return (await response.json()) as AllauthResponse<TData>
+    } catch (cause) {
+      throw new AllauthTransportError(
+        `Expected a JSON allauth response (status ${response.status})`,
+        { cause, status: response.status },
+      )
+    }
   }
 
   getSession(): Promise<AuthFlowResponse> {

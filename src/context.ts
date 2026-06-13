@@ -8,6 +8,8 @@ export interface AllauthContextValue {
   client: AllauthClient
   /** Latest authentication/session response, or `null` while loading. */
   session: AuthFlowResponse | null
+  /** Error from the initial session check, or `null`. */
+  sessionError: Error | null
   /**
    * Feed an auth-flow response back into shared state. Responses that carry
    * session state (200/401/410) refresh the session; others are passed through

@@ -59,7 +59,7 @@ function HookShowcase() {
 
 export function App() {
   return (
-    <AllauthProvider baseUrl="http://localhost:8000" client="browser">
+    <AllauthProvider baseUrl="http://localhost:8000">
       <main
         style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 640 }}
       >

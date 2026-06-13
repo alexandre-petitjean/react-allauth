@@ -4,7 +4,7 @@
 export * from './AllauthProvider'
 
 // Errors
-export { AllauthRequestError } from './errors'
+export { AllauthRequestError, AllauthTransportError } from './errors'
 
 // Hooks
 export * from './hooks/useAuth'
