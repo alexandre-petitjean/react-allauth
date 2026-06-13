@@ -230,6 +230,12 @@ export interface WebAuthnAuthenticator extends BaseAuthenticator {
   name: string
 }
 
+/** Recovery codes authenticator including the still-unused codes themselves. */
+export interface SensitiveRecoveryCodesAuthenticator
+  extends RecoveryCodesAuthenticator {
+  unused_codes: string[]
+}
+
 export type Authenticator =
   | TOTPAuthenticator
   | RecoveryCodesAuthenticator

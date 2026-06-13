@@ -1,6 +1,7 @@
 import type {
   AllauthResponse,
   AuthenticationData,
+  Authenticator,
   AuthFlowResponse,
   ChangePasswordInput,
   ClientType,
@@ -9,7 +10,9 @@ import type {
   EmailAddress,
   LoginCredentials,
   ReauthenticateData,
+  SensitiveRecoveryCodesAuthenticator,
   SignupData,
+  TOTPAuthenticator,
   UserSession,
 } from './types'
 
@@ -143,5 +146,42 @@ export class AllauthClient {
 
   verifyEmail(key: string): Promise<AuthFlowResponse> {
     return this.request('POST', '/auth/email/verify', { key })
+  }
+
+  getAuthenticators(): Promise<AllauthResponse<Authenticator[]>> {
+    return this.request<Authenticator[]>('GET', '/account/authenticators')
+  }
+
+  // GET returns 404 with `meta.secret` / `meta.totp_url` when TOTP is not set up.
+  getTOTPStatus(): Promise<AllauthResponse<TOTPAuthenticator>> {
+    return this.request<TOTPAuthenticator>('GET', '/account/authenticators/totp')
+  }
+
+  activateTOTP(code: string): Promise<AllauthResponse<TOTPAuthenticator>> {
+    return this.request<TOTPAuthenticator>(
+      'POST',
+      '/account/authenticators/totp',
+      { code },
+    )
+  }
+
+  deactivateTOTP(): Promise<AllauthResponse> {
+    return this.request('DELETE', '/account/authenticators/totp')
+  }
+
+  getRecoveryCodes(): Promise<AllauthResponse<SensitiveRecoveryCodesAuthenticator>> {
+    return this.request<SensitiveRecoveryCodesAuthenticator>(
+      'GET',
+      '/account/authenticators/recovery-codes',
+    )
+  }
+
+  regenerateRecoveryCodes(): Promise<
+    AllauthResponse<SensitiveRecoveryCodesAuthenticator>
+  > {
+    return this.request<SensitiveRecoveryCodesAuthenticator>(
+      'POST',
+      '/account/authenticators/recovery-codes',
+    )
   }
 }
