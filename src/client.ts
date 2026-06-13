@@ -1,4 +1,10 @@
 import type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
+} from '@simplewebauthn/browser'
+import type {
   AllauthResponse,
   AuthenticationData,
   Authenticator,
@@ -17,7 +23,19 @@ import type {
   SignupData,
   TOTPAuthenticator,
   UserSession,
+  WebAuthnAuthenticator,
 } from './types'
+
+/** WebAuthn ceremonies that complete an authentication flow. */
+export type WebAuthnFlow = 'authenticate' | 'login' | 'reauthenticate'
+
+interface WebAuthnCreationOptions {
+  creation_options: { publicKey: PublicKeyCredentialCreationOptionsJSON }
+}
+
+interface WebAuthnRequestOptions {
+  request_options: { publicKey: PublicKeyCredentialRequestOptionsJSON }
+}
 
 export interface AllauthClientOptions {
   /** Base URL of the django-allauth server. */
@@ -249,5 +267,36 @@ export class AllauthClient {
 
     document.body.appendChild(form)
     form.submit()
+  }
+
+  getWebAuthnCreationOptions(): Promise<AllauthResponse<WebAuthnCreationOptions>> {
+    return this.request<WebAuthnCreationOptions>(
+      'GET',
+      '/account/authenticators/webauthn',
+    )
+  }
+
+  registerWebAuthn(
+    name: string | undefined,
+    credential: RegistrationResponseJSON,
+  ): Promise<AllauthResponse<WebAuthnAuthenticator>> {
+    return this.request<WebAuthnAuthenticator>(
+      'POST',
+      '/account/authenticators/webauthn',
+      { name, credential },
+    )
+  }
+
+  getWebAuthnRequestOptions(
+    flow: WebAuthnFlow,
+  ): Promise<AllauthResponse<WebAuthnRequestOptions>> {
+    return this.request<WebAuthnRequestOptions>('GET', `/auth/webauthn/${flow}`)
+  }
+
+  postWebAuthnCredential(
+    flow: WebAuthnFlow,
+    credential: AuthenticationResponseJSON,
+  ): Promise<AuthFlowResponse> {
+    return this.request('POST', `/auth/webauthn/${flow}`, { credential })
   }
 }

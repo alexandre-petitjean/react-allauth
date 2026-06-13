@@ -1,3 +1,8 @@
+import { useCallback } from 'react'
+import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
+import { useAllauthContext } from './useAllauthContext'
+import { AllauthRequestError, ensureOk } from '../errors'
+import type { WebAuthnFlow } from '../client'
 import type { AuthFlowResponse, WebAuthnAuthenticator } from '../types'
 
 export interface UseWebAuthnResult {
@@ -13,5 +18,43 @@ export interface UseWebAuthnResult {
 
 /** WebAuthn / passkey registration and authentication. */
 export function useWebAuthn(): UseWebAuthnResult {
-  throw new Error('not implemented')
+  const { client, applyResponse } = useAllauthContext()
+
+  const register = useCallback(
+    async (name?: string) => {
+      const optionsResponse = await client.getWebAuthnCreationOptions()
+      const publicKey = optionsResponse.data?.creation_options?.publicKey
+      if (!publicKey) throw new AllauthRequestError(optionsResponse)
+
+      const credential = await startRegistration({ optionsJSON: publicKey })
+      const response = ensureOk(await client.registerWebAuthn(name, credential))
+      if (!response.data) throw new AllauthRequestError(response)
+      return response.data
+    },
+    [client],
+  )
+
+  const runCeremony = useCallback(
+    async (flow: WebAuthnFlow) => {
+      const optionsResponse = await client.getWebAuthnRequestOptions(flow)
+      const publicKey = optionsResponse.data?.request_options?.publicKey
+      if (!publicKey) throw new AllauthRequestError(optionsResponse)
+
+      const credential = await startAuthentication({ optionsJSON: publicKey })
+      return applyResponse(await client.postWebAuthnCredential(flow, credential))
+    },
+    [client, applyResponse],
+  )
+
+  const authenticate = useCallback(
+    () => runCeremony('authenticate'),
+    [runCeremony],
+  )
+  const login = useCallback(() => runCeremony('login'), [runCeremony])
+  const reauthenticate = useCallback(
+    () => runCeremony('reauthenticate'),
+    [runCeremony],
+  )
+
+  return { register, authenticate, login, reauthenticate }
 }

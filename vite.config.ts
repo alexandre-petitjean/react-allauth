@@ -21,8 +21,13 @@ export default defineConfig({
       fileName: 'index',
     },
     rolldownOptions: {
-      // React must be provided by the consumer, not bundled.
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      // React (peer) and runtime deps must be provided by the consumer.
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        '@simplewebauthn/browser',
+      ],
     },
   },
 })
