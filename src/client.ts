@@ -6,6 +6,7 @@ import type {
   ClientType,
   Config,
   ConfirmPasswordResetInput,
+  EmailAddress,
   LoginCredentials,
   ReauthenticateData,
   SignupData,
@@ -115,5 +116,32 @@ export class AllauthClient {
 
   resetPassword(input: ConfirmPasswordResetInput): Promise<AuthFlowResponse> {
     return this.request('POST', '/auth/password/reset', input)
+  }
+
+  getEmails(): Promise<AllauthResponse<EmailAddress[]>> {
+    return this.request<EmailAddress[]>('GET', '/account/email')
+  }
+
+  addEmail(email: string): Promise<AllauthResponse<EmailAddress[]>> {
+    return this.request<EmailAddress[]>('POST', '/account/email', { email })
+  }
+
+  removeEmail(email: string): Promise<AllauthResponse<EmailAddress[]>> {
+    return this.request<EmailAddress[]>('DELETE', '/account/email', { email })
+  }
+
+  markEmailPrimary(email: string): Promise<AllauthResponse<EmailAddress[]>> {
+    return this.request<EmailAddress[]>('PATCH', '/account/email', {
+      email,
+      primary: true,
+    })
+  }
+
+  requestEmailVerification(email: string): Promise<AllauthResponse> {
+    return this.request('PUT', '/account/email', { email })
+  }
+
+  verifyEmail(key: string): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/email/verify', { key })
   }
 }
