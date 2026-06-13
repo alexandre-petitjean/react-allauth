@@ -3,6 +3,7 @@ import type {
   AuthenticationData,
   AuthFlowResponse,
   ClientType,
+  Config,
   LoginCredentials,
   ReauthenticateData,
   SignupData,
@@ -85,5 +86,9 @@ export class AllauthClient {
 
   reauthenticate(data: ReauthenticateData): Promise<AuthFlowResponse> {
     return this.request('POST', '/auth/reauthenticate', data)
+  }
+
+  getConfig(): Promise<AllauthResponse<Config>> {
+    return this.request<Config>('GET', '/config')
   }
 }

@@ -1,17 +1,12 @@
-import type { ReactNode } from 'react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { AllauthProvider } from '../AllauthProvider'
 import { server } from '../test/setup'
-import { TEST_BASE_URL, v1 } from '../test/handlers'
+import { v1 } from '../test/handlers'
+import { wrapper } from '../test/utils'
 import { useAuth } from './useAuth'
 
 const CREDENTIALS = { email: 'alice@example.com', password: 'secret' }
-
-function wrapper({ children }: { children: ReactNode }) {
-  return <AllauthProvider baseUrl={TEST_BASE_URL}>{children}</AllauthProvider>
-}
 
 /** Render `useAuth` and wait for the initial (anonymous) session to settle. */
 async function renderAuth() {

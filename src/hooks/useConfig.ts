@@ -1,3 +1,6 @@
+import { useCallback } from 'react'
+import { useAllauthContext } from './useAllauthContext'
+import { useResource } from './useResource'
 import type { Config } from '../types'
 
 export interface UseConfigResult {
@@ -8,5 +11,11 @@ export interface UseConfigResult {
 
 /** Fetch the one-shot allauth configuration. */
 export function useConfig(): UseConfigResult {
-  throw new Error('not implemented')
+  const { client } = useAllauthContext()
+  const fetcher = useCallback(
+    () => client.getConfig().then((response) => response.data ?? null),
+    [client],
+  )
+  const { data: config, loading } = useResource(fetcher)
+  return { config, loading }
 }
