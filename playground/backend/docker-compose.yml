@@ -1,0 +1,30 @@
+# Local django-allauth headless backend for the playground.
+# Start everything with: docker compose up
+#
+# - backend: Django + allauth in HEADLESS_ONLY mode (SQLite), served on :8000
+# - mail:    Mailpit, captures outgoing emails (verification, login codes).
+#            SMTP on :1025 (matches settings EMAIL_HOST/PORT), web UI on :8025
+services:
+  backend:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             (python manage.py createsuperuser --noinput || true) &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_EMAIL: admin@example.com
+      DJANGO_SUPERUSER_PASSWORD: admin
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    depends_on:
+      - mail
+
+  mail:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
