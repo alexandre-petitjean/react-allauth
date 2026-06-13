@@ -2,8 +2,10 @@ import type {
   AllauthResponse,
   AuthenticationData,
   AuthFlowResponse,
+  ChangePasswordInput,
   ClientType,
   Config,
+  ConfirmPasswordResetInput,
   LoginCredentials,
   ReauthenticateData,
   SignupData,
@@ -101,5 +103,17 @@ export class AllauthClient {
     return this.request<UserSession[]>('DELETE', '/auth/sessions', {
       sessions: sessionIds,
     })
+  }
+
+  changePassword(input: ChangePasswordInput): Promise<AllauthResponse> {
+    return this.request('POST', '/account/password/change', input)
+  }
+
+  requestPasswordReset(email: string): Promise<AllauthResponse> {
+    return this.request('POST', '/auth/password/request', { email })
+  }
+
+  resetPassword(input: ConfirmPasswordResetInput): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/password/reset', input)
   }
 }

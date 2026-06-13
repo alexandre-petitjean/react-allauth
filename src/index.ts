@@ -3,6 +3,9 @@
 // Provider
 export * from './AllauthProvider'
 
+// Errors
+export { AllauthRequestError } from './errors'
+
 // Hooks
 export * from './hooks/useAuth'
 export * from './hooks/usePassword'

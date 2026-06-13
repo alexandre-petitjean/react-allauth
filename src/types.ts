@@ -140,6 +140,16 @@ export interface ReauthenticateData {
   password: string
 }
 
+export interface ChangePasswordInput {
+  current_password: string
+  new_password: string
+}
+
+export interface ConfirmPasswordResetInput {
+  key: string
+  password: string
+}
+
 /** OAuth handshake processing intent. */
 export type AuthProcess = 'login' | 'connect'
 
