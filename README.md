@@ -9,8 +9,8 @@
 [![types](https://img.shields.io/npm/types/react-allauth.svg)](https://www.typescriptlang.org/)
 
 > [!NOTE]
-> This package is under active development. Only `useAuth` is implemented so far;
-> the other hooks are typed but not wired up yet. See [Stability](#stability).
+> This package is under active development. All hooks are implemented and tested,
+> but the API may still change between `0.x` releases. See [Stability](#stability).
 
 ## Why this exists
 
@@ -65,18 +65,16 @@ export function App() {
 
 ## Hooks
 
-| Hook             | What it does                                              | Status |
-| ---------------- | -------------------------------------------------------- | ------ |
-| `useAuth`        | Session state plus login / signup / logout / reauth      | ✅     |
-| `useConfig`      | Fetch the one-shot allauth configuration                 | 🚧     |
-| `usePassword`    | Change password and the reset-by-key flow                | 🚧     |
-| `useEmails`      | Manage email addresses and verification                  | 🚧     |
-| `useMFA`         | TOTP, recovery codes and browser trust                   | 🚧     |
-| `useWebAuthn`    | Passkey registration and authentication                  | 🚧     |
-| `useSocialAuth`  | Provider redirect / token login and connected accounts   | 🚧     |
-| `useSessions`    | List and revoke active sessions                          | 🚧     |
-
-✅ implemented · 🚧 typed, implementation in progress
+| Hook            | What it does                                            |
+| --------------- | ------------------------------------------------------ |
+| `useAuth`       | Session state plus login / signup / logout / reauth    |
+| `useConfig`     | Fetch the one-shot allauth configuration               |
+| `usePassword`   | Change password and the reset-by-key flow              |
+| `useEmails`     | Manage email addresses and verification                |
+| `useMFA`        | TOTP and recovery codes                                |
+| `useWebAuthn`   | Passkey registration and authentication                |
+| `useSocialAuth` | Provider redirect / token login and connected accounts |
+| `useSessions`   | List and revoke active sessions                        |
 
 ## Compatibility
 

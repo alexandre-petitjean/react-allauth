@@ -28,6 +28,10 @@ export interface ResponseMeta {
   /** Present for `app` clients only. */
   session_token?: string
   access_token?: string
+  /** TOTP setup secret, present on the 404 from the TOTP status endpoint. */
+  secret?: string
+  /** TOTP provisioning URI, present alongside `secret` during setup. */
+  totp_url?: string
 }
 
 /** A single validation or business error returned by the API. */
@@ -229,6 +233,9 @@ export interface WebAuthnAuthenticator extends BaseAuthenticator {
   id: number
   name: string
 }
+
+/** WebAuthn ceremonies that complete an authentication flow. */
+export type WebAuthnFlow = 'authenticate' | 'login' | 'reauthenticate'
 
 /** Recovery codes authenticator including the still-unused codes themselves. */
 export interface SensitiveRecoveryCodesAuthenticator

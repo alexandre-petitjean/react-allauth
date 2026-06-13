@@ -23,3 +23,12 @@ export function ensureOk<T extends AllauthResponse>(response: T): T {
   if (response.status >= 400) throw new AllauthRequestError(response)
   return response
 }
+
+/** Return the response `data`, throwing when the response failed or carried none. */
+export function ensureData<TData>(
+  response: AllauthResponse<TData>,
+): NonNullable<TData> {
+  ensureOk(response)
+  if (response.data == null) throw new AllauthRequestError(response)
+  return response.data
+}

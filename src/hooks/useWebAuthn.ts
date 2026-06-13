@@ -1,9 +1,12 @@
 import { useCallback } from 'react'
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import { useAllauthContext } from './useAllauthContext'
-import { AllauthRequestError, ensureOk } from '../errors'
-import type { WebAuthnFlow } from '../client'
-import type { AuthFlowResponse, WebAuthnAuthenticator } from '../types'
+import { AllauthRequestError, ensureData } from '../errors'
+import type {
+  AuthFlowResponse,
+  WebAuthnAuthenticator,
+  WebAuthnFlow,
+} from '../types'
 
 export interface UseWebAuthnResult {
   /** Register a new passkey on the authenticated account. */
@@ -27,9 +30,7 @@ export function useWebAuthn(): UseWebAuthnResult {
       if (!publicKey) throw new AllauthRequestError(optionsResponse)
 
       const credential = await startRegistration({ optionsJSON: publicKey })
-      const response = ensureOk(await client.registerWebAuthn(name, credential))
-      if (!response.data) throw new AllauthRequestError(response)
-      return response.data
+      return ensureData(await client.registerWebAuthn(name, credential))
     },
     [client],
   )

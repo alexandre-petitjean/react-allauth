@@ -24,10 +24,8 @@ import type {
   TOTPAuthenticator,
   UserSession,
   WebAuthnAuthenticator,
+  WebAuthnFlow,
 } from './types'
-
-/** WebAuthn ceremonies that complete an authentication flow. */
-export type WebAuthnFlow = 'authenticate' | 'login' | 'reauthenticate'
 
 interface WebAuthnCreationOptions {
   creation_options: { publicKey: PublicKeyCredentialCreationOptionsJSON }

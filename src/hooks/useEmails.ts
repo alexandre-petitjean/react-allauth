@@ -21,30 +21,27 @@ export function useEmails(): UseEmailsResult {
     () => client.getEmails().then((response) => response.data ?? []),
     [client],
   )
-  const { data, reload } = useResource(fetcher)
+  const { data, setData } = useResource(fetcher)
 
   const add = useCallback(
     async (email: string) => {
-      ensureOk(await client.addEmail(email))
-      await reload()
+      setData(ensureOk(await client.addEmail(email)).data ?? [])
     },
-    [client, reload],
+    [client, setData],
   )
 
   const remove = useCallback(
     async (email: string) => {
-      ensureOk(await client.removeEmail(email))
-      await reload()
+      setData(ensureOk(await client.removeEmail(email)).data ?? [])
     },
-    [client, reload],
+    [client, setData],
   )
 
   const markPrimary = useCallback(
     async (email: string) => {
-      ensureOk(await client.markEmailPrimary(email))
-      await reload()
+      setData(ensureOk(await client.markEmailPrimary(email)).data ?? [])
     },
-    [client, reload],
+    [client, setData],
   )
 
   const requestVerification = useCallback(

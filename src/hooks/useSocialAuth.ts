@@ -38,7 +38,7 @@ export function useSocialAuth(): UseSocialAuthResult {
     () => client.getProviders().then((response) => response.data ?? []),
     [client],
   )
-  const { data, reload } = useResource(fetcher)
+  const { data, setData } = useResource(fetcher)
 
   const redirectToProvider = useCallback(
     (providerId: string, callbackUrl: string, process: AuthProcess = 'login') => {
@@ -63,10 +63,13 @@ export function useSocialAuth(): UseSocialAuthResult {
 
   const disconnect = useCallback(
     async (account: ProviderAccount) => {
-      ensureOk(await client.disconnectProvider(account.provider.id, account.uid))
-      await reload()
+      setData(
+        ensureOk(
+          await client.disconnectProvider(account.provider.id, account.uid),
+        ).data ?? [],
+      )
     },
-    [client, reload],
+    [client, setData],
   )
 
   return {

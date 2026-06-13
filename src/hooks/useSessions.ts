@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useAllauthContext } from './useAllauthContext'
 import { useResource } from './useResource'
+import { ensureOk } from '../errors'
 import type { UserSession } from '../types'
 
 export interface UseSessionsResult {
@@ -16,14 +17,13 @@ export function useSessions(): UseSessionsResult {
     () => client.getSessions().then((response) => response.data ?? []),
     [client],
   )
-  const { data, reload } = useResource(fetcher)
+  const { data, setData } = useResource(fetcher)
 
   const revoke = useCallback(
     async (session: UserSession) => {
-      await client.endSessions([session.id])
-      await reload()
+      setData(ensureOk(await client.endSessions([session.id])).data ?? [])
     },
-    [client, reload],
+    [client, setData],
   )
 
   return { sessions: data ?? [], revoke }

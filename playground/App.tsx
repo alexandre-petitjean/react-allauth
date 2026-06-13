@@ -1,7 +1,7 @@
-// Exercises the public API contract exactly like a real consumer: through the
-// package name `react-allauth` (aliased to `../src/index.ts`). The hooks are
-// typed but still throw `not implemented`, so the showcase is rendered inside an
-// error boundary — the point is that this file *compiles* with full autocomplete.
+// Exercises the public API exactly like a real consumer: through the package
+// name `react-allauth` (aliased to `../src/index.ts`). The hooks talk to the
+// allauth backend from `playground/backend`; the showcase is wrapped in an error
+// boundary so a missing backend degrades gracefully.
 import { Component, type ReactNode } from 'react'
 import {
   AllauthProvider,
@@ -72,7 +72,7 @@ export function App() {
         <ErrorBoundary
           fallback={
             <p>
-              <em>Hooks are typed but not implemented yet.</em>
+              <em>Could not reach the allauth backend (see playground/backend).</em>
             </p>
           }
         >

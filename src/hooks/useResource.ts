@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react'
 
 export interface Resource<T> {
   /** The fetched value, or `null` until the first load resolves. */
@@ -7,6 +13,8 @@ export interface Resource<T> {
   loading: boolean
   /** Re-run the fetcher (e.g. after a mutation). */
   reload: () => Promise<void>
+  /** Seed the value directly, e.g. from a mutation response that returns it. */
+  setData: Dispatch<SetStateAction<T | null>>
 }
 
 /**
@@ -41,5 +49,5 @@ export function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
     }
   }, [fetcher])
 
-  return { data, loading, reload }
+  return { data, loading, reload, setData }
 }

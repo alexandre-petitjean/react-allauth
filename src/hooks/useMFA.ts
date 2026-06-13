@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useAllauthContext } from './useAllauthContext'
 import { useResource } from './useResource'
-import { AllauthRequestError, ensureOk } from '../errors'
+import { AllauthRequestError, ensureData, ensureOk } from '../errors'
 import type { Authenticator, TOTPAuthenticator, TOTPSetup } from '../types'
 
 export interface UseMFAResult {
@@ -28,17 +28,16 @@ export function useMFA(): UseMFAResult {
 
   const getTOTPSetup = useCallback(async (): Promise<TOTPSetup> => {
     const response = await client.getTOTPStatus()
-    const meta = response.meta as { secret?: string; totp_url?: string } | undefined
-    if (!meta?.secret || !meta.totp_url) throw new AllauthRequestError(response)
-    return { secret: meta.secret, totp_url: meta.totp_url }
+    const { secret, totp_url } = response.meta ?? {}
+    if (!secret || !totp_url) throw new AllauthRequestError(response)
+    return { secret, totp_url }
   }, [client])
 
   const activateTOTP = useCallback(
     async (code: string) => {
-      const response = ensureOk(await client.activateTOTP(code))
-      if (!response.data) throw new AllauthRequestError(response)
+      const authenticator = ensureData(await client.activateTOTP(code))
       await reload()
-      return response.data
+      return authenticator
     },
     [client, reload],
   )
