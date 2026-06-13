@@ -1,3 +1,6 @@
+import { useCallback } from 'react'
+import { useAllauthContext } from './useAllauthContext'
+import { useResource } from './useResource'
 import type { UserSession } from '../types'
 
 export interface UseSessionsResult {
@@ -8,5 +11,20 @@ export interface UseSessionsResult {
 
 /** List and revoke the user's active sessions. */
 export function useSessions(): UseSessionsResult {
-  throw new Error('not implemented')
+  const { client } = useAllauthContext()
+  const fetcher = useCallback(
+    () => client.getSessions().then((response) => response.data ?? []),
+    [client],
+  )
+  const { data, reload } = useResource(fetcher)
+
+  const revoke = useCallback(
+    async (session: UserSession) => {
+      await client.endSessions([session.id])
+      await reload()
+    },
+    [client, reload],
+  )
+
+  return { sessions: data ?? [], revoke }
 }

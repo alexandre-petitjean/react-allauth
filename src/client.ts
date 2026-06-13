@@ -7,6 +7,7 @@ import type {
   LoginCredentials,
   ReauthenticateData,
   SignupData,
+  UserSession,
 } from './types'
 
 export interface AllauthClientOptions {
@@ -90,5 +91,15 @@ export class AllauthClient {
 
   getConfig(): Promise<AllauthResponse<Config>> {
     return this.request<Config>('GET', '/config')
+  }
+
+  getSessions(): Promise<AllauthResponse<UserSession[]>> {
+    return this.request<UserSession[]>('GET', '/auth/sessions')
+  }
+
+  endSessions(sessionIds: number[]): Promise<AllauthResponse<UserSession[]>> {
+    return this.request<UserSession[]>('DELETE', '/auth/sessions', {
+      sessions: sessionIds,
+    })
   }
 }
