@@ -46,6 +46,13 @@ Continuous integration (lint, type-check, test, build on Node 20 & 22) runs on
 every pull request. Publishing is automated: pushing a `v*` tag triggers
 `npm publish` from CI, which requires an `NPM_TOKEN` repository secret.
 
+## Stability
+
+This package is in its `0.x` phase: the API is still being shaped and breaking
+changes may land between `0.x` releases (always noted in the CHANGELOG). Pin a
+version if you need stability. See [VERSIONING.md](./VERSIONING.md) for the full
+policy and the road to `1.0.0`.
+
 ## License
 
 [MIT](./LICENSE)
