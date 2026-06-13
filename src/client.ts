@@ -96,14 +96,28 @@ export class AllauthClient {
       )
     }
 
+    let payload: unknown
     try {
-      return (await response.json()) as AllauthResponse<TData>
+      payload = await response.json()
     } catch (cause) {
       throw new AllauthTransportError(
         `Expected a JSON allauth response (status ${response.status})`,
         { cause, status: response.status },
       )
     }
+
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      typeof (payload as { status?: unknown }).status !== 'number'
+    ) {
+      throw new AllauthTransportError(
+        `Malformed allauth response: missing numeric "status" (HTTP ${response.status})`,
+        { status: response.status },
+      )
+    }
+
+    return payload as AllauthResponse<TData>
   }
 
   getSession(): Promise<AuthFlowResponse> {

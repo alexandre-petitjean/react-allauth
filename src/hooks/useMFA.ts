@@ -9,6 +9,8 @@ export interface UseMFAResult {
   authenticators: Authenticator[]
   loading: boolean
   error: Error | null
+  /** Refetch the authenticator list. */
+  reload(): Promise<void>
   /** Fetch the TOTP secret + provisioning URI to display a QR code. */
   getTOTPSetup(): Promise<TOTPSetup>
   activateTOTP(code: string): Promise<TOTPAuthenticator>
@@ -21,11 +23,16 @@ export interface UseMFAResult {
 
 /** Multi-factor authentication: TOTP and recovery codes. */
 export function useMFA(): UseMFAResult {
-  const { client } = useAllauthContext()
+  const { client, session } = useAllauthContext()
+  const isAuthenticated = session?.meta?.is_authenticated ?? false
   const fetcher = useCallback(
     () =>
-      client.getAuthenticators().then((response) => ensureOk(response).data ?? []),
-    [client],
+      isAuthenticated
+        ? client
+            .getAuthenticators()
+            .then((response) => ensureOk(response).data ?? [])
+        : Promise.resolve<Authenticator[]>([]),
+    [client, isAuthenticated],
   )
   const { data, loading, error, reload } = useResource(fetcher)
 
@@ -65,6 +72,7 @@ export function useMFA(): UseMFAResult {
     authenticators: data ?? [],
     loading,
     error,
+    reload,
     getTOTPSetup,
     activateTOTP,
     deactivateTOTP,

@@ -9,24 +9,30 @@ export interface UseSessionsResult {
   sessions: UserSession[]
   loading: boolean
   error: Error | null
+  /** Refetch the session list. */
+  reload(): Promise<void>
   revoke(session: UserSession): Promise<void>
 }
 
 /** List and revoke the user's active sessions. */
 export function useSessions(): UseSessionsResult {
-  const { client } = useAllauthContext()
+  const { client, session } = useAllauthContext()
+  const isAuthenticated = session?.meta?.is_authenticated ?? false
   const fetcher = useCallback(
-    () => client.getSessions().then((response) => ensureOk(response).data ?? []),
-    [client],
+    () =>
+      isAuthenticated
+        ? client.getSessions().then((response) => ensureOk(response).data ?? [])
+        : Promise.resolve<UserSession[]>([]),
+    [client, isAuthenticated],
   )
-  const { data, loading, error, setData } = useResource(fetcher)
+  const { data, loading, error, reload, setData } = useResource(fetcher)
 
   const revoke = useCallback(
-    async (session: UserSession) => {
-      setData(ensureOk(await client.endSessions([session.id])).data ?? [])
+    async (target: UserSession) => {
+      setData(ensureOk(await client.endSessions([target.id])).data ?? [])
     },
     [client, setData],
   )
 
-  return { sessions: data ?? [], loading, error, revoke }
+  return { sessions: data ?? [], loading, error, reload, revoke }
 }

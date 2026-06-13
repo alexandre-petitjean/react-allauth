@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/setup'
-import { v1 } from '../test/handlers'
+import { authenticatedSession, v1 } from '../test/handlers'
 import { wrapper } from '../test/utils'
 import { useMFA } from './useMFA'
 
@@ -11,6 +11,7 @@ const authPath = `${v1}/account/authenticators`
 describe('useMFA', () => {
   it('lists authenticators', async () => {
     server.use(
+      authenticatedSession(),
       http.get(authPath, () =>
         HttpResponse.json({
           status: 200,

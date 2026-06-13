@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AllauthClient } from './client'
 import { AllauthContext } from './context'
-import { toError } from './errors'
+import { AllauthRequestError, toError } from './errors'
 import type { AuthFlowResponse } from './types'
 
 export interface AllauthProviderProps {
@@ -21,25 +21,44 @@ function isAuthenticationResponse(response: AuthFlowResponse): boolean {
 /**
  * Provides the allauth client and session state to every hook in the tree.
  * Wrap your app once, near the root. The current session is fetched on mount;
- * a failed check is surfaced as `sessionError` so consumers never hang in
- * `loading`.
+ * any completed-but-failed check is surfaced as `sessionError` so consumers
+ * never hang in `loading`.
  */
 export function AllauthProvider({ baseUrl, children }: AllauthProviderProps) {
   const client = useMemo(() => new AllauthClient({ baseUrl }), [baseUrl])
   const [session, setSession] = useState<AuthFlowResponse | null>(null)
   const [sessionError, setSessionError] = useState<Error | null>(null)
 
-  const applyResponse = useCallback((response: AuthFlowResponse) => {
-    if (isAuthenticationResponse(response)) setSession(response)
-    return response
+  // Reset state when the client (baseUrl) changes, before the new check runs,
+  // so stale session/error from the previous client is never exposed.
+  const [trackedClient, setTrackedClient] = useState(client)
+  if (trackedClient !== client) {
+    setTrackedClient(client)
+    setSession(null)
+    setSessionError(null)
+  }
+
+  const applySession = useCallback((response: AuthFlowResponse) => {
+    setSession(response)
+    setSessionError(null)
   }, [])
+
+  const applyResponse = useCallback(
+    (response: AuthFlowResponse) => {
+      if (isAuthenticationResponse(response)) applySession(response)
+      return response
+    },
+    [applySession],
+  )
 
   useEffect(() => {
     let active = true
     client
       .getSession()
       .then((result) => {
-        if (active) applyResponse(result)
+        if (!active) return
+        if (isAuthenticationResponse(result)) applySession(result)
+        else setSessionError(new AllauthRequestError(result))
       })
       .catch((caught: unknown) => {
         if (active) setSessionError(toError(caught))
@@ -47,7 +66,7 @@ export function AllauthProvider({ baseUrl, children }: AllauthProviderProps) {
     return () => {
       active = false
     }
-  }, [client, applyResponse])
+  }, [client, applySession])
 
   const value = useMemo(
     () => ({ client, session, sessionError, applyResponse }),

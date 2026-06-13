@@ -9,6 +9,8 @@ export interface UseEmailsResult {
   emails: EmailAddress[]
   loading: boolean
   error: Error | null
+  /** Refetch the email list. */
+  reload(): Promise<void>
   add(email: string): Promise<void>
   remove(email: string): Promise<void>
   markPrimary(email: string): Promise<void>
@@ -18,12 +20,16 @@ export interface UseEmailsResult {
 
 /** Manage the account's email addresses and verification. */
 export function useEmails(): UseEmailsResult {
-  const { client, applyResponse } = useAllauthContext()
+  const { client, session, applyResponse } = useAllauthContext()
+  const isAuthenticated = session?.meta?.is_authenticated ?? false
   const fetcher = useCallback(
-    () => client.getEmails().then((response) => ensureOk(response).data ?? []),
-    [client],
+    () =>
+      isAuthenticated
+        ? client.getEmails().then((response) => ensureOk(response).data ?? [])
+        : Promise.resolve<EmailAddress[]>([]),
+    [client, isAuthenticated],
   )
-  const { data, loading, error, setData } = useResource(fetcher)
+  const { data, loading, error, reload, setData } = useResource(fetcher)
 
   const add = useCallback(
     async (email: string) => {
@@ -62,6 +68,7 @@ export function useEmails(): UseEmailsResult {
     emails: data ?? [],
     loading,
     error,
+    reload,
     add,
     remove,
     markPrimary,

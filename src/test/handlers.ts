@@ -10,6 +10,17 @@ export const v1 = `${TEST_BASE_URL}/_allauth/browser/v1`
  * Default handlers: an anonymous session and a successful login. Individual
  * tests override these with `server.use(...)` for failure/MFA scenarios.
  */
+/** Override the session handler to report an authenticated browser session. */
+export function authenticatedSession() {
+  return http.get(`${v1}/auth/session`, () =>
+    HttpResponse.json({
+      status: 200,
+      data: { user: { id: 1, display: 'Alice', email: 'alice@example.com' } },
+      meta: { is_authenticated: true },
+    }),
+  )
+}
+
 export const handlers = [
   http.get(`${v1}/auth/session`, () =>
     HttpResponse.json(

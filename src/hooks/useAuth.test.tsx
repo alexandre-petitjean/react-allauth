@@ -38,6 +38,62 @@ describe('useAuth', () => {
     expect(result.current.user).toBeNull()
   })
 
+  it('does not hang in loading on a valid JSON error envelope (500)', async () => {
+    server.use(
+      http.get(`${v1}/auth/session`, () =>
+        HttpResponse.json(
+          { status: 500, errors: [{ message: 'boom', code: 'server_error' }] },
+          { status: 500 },
+        ),
+      ),
+    )
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+    expect(result.current.error).toBeInstanceOf(Error)
+  })
+
+  it('does not hang in loading on malformed parseable JSON', async () => {
+    server.use(http.get(`${v1}/auth/session`, () => HttpResponse.json({})))
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+    expect(result.current.error).toBeInstanceOf(Error)
+  })
+
+  it('clears the startup error after a successful login', async () => {
+    server.use(
+      http.get(`${v1}/auth/session`, () =>
+        HttpResponse.json({ status: 500 }, { status: 500 }),
+      ),
+    )
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    await waitFor(() => expect(result.current.error).not.toBeNull())
+
+    await act(async () => {
+      await result.current.login(CREDENTIALS)
+    })
+
+    await waitFor(() => expect(result.current.status).toBe('authenticated'))
+    expect(result.current.error).toBeNull()
+  })
+
+  it('surfaces a structured server error from logout', async () => {
+    server.use(
+      http.delete(`${v1}/auth/session`, () =>
+        HttpResponse.json(
+          { status: 500, errors: [{ message: 'boom', code: 'server_error' }] },
+          { status: 500 },
+        ),
+      ),
+    )
+    const result = await renderAuth()
+
+    const response = await act(() => result.current.logout())
+    expect(response.status).toBe(500)
+    expect(response.errors?.[0]?.code).toBe('server_error')
+  })
+
   it('authenticates on login success', async () => {
     const result = await renderAuth()
 

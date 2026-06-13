@@ -15,6 +15,8 @@ export interface UseSocialAuthResult {
   connections: ProviderAccount[]
   loading: boolean
   error: Error | null
+  /** Refetch the connected accounts. */
+  reload(): Promise<void>
   /** Navigate to the provider's redirect (OAuth) flow. */
   redirectToProvider(
     providerId: string,
@@ -35,12 +37,16 @@ export interface UseSocialAuthResult {
 
 /** Third-party (social) authentication and connected accounts. */
 export function useSocialAuth(): UseSocialAuthResult {
-  const { client, applyResponse } = useAllauthContext()
+  const { client, session, applyResponse } = useAllauthContext()
+  const isAuthenticated = session?.meta?.is_authenticated ?? false
   const fetcher = useCallback(
-    () => client.getProviders().then((response) => ensureOk(response).data ?? []),
-    [client],
+    () =>
+      isAuthenticated
+        ? client.getProviders().then((response) => ensureOk(response).data ?? [])
+        : Promise.resolve<ProviderAccount[]>([]),
+    [client, isAuthenticated],
   )
-  const { data, loading, error, setData } = useResource(fetcher)
+  const { data, loading, error, reload, setData } = useResource(fetcher)
 
   const redirectToProvider = useCallback(
     (providerId: string, callbackUrl: string, process: AuthProcess = 'login') => {
@@ -78,6 +84,7 @@ export function useSocialAuth(): UseSocialAuthResult {
     connections: data ?? [],
     loading,
     error,
+    reload,
     redirectToProvider,
     authenticateByToken,
     providerSignup,

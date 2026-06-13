@@ -21,7 +21,7 @@ export interface UseAuthResult {
   error: Error | null
   login(credentials: LoginCredentials): Promise<AuthFlowResponse>
   signup(data: SignupData): Promise<AuthFlowResponse>
-  logout(): Promise<void>
+  logout(): Promise<AuthFlowResponse>
   reauthenticate(data: ReauthenticateData): Promise<AuthFlowResponse>
 }
 
@@ -58,9 +58,10 @@ export function useAuth(): UseAuthResult {
     [client, applyResponse],
   )
 
-  const logout = useCallback(async () => {
-    applyResponse(await client.logout())
-  }, [client, applyResponse])
+  const logout = useCallback(
+    async () => applyResponse(await client.logout()),
+    [client, applyResponse],
+  )
 
   const reauthenticate = useCallback(
     async (data: ReauthenticateData) =>

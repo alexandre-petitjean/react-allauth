@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { server } from '../test/setup'
-import { v1 } from '../test/handlers'
+import { authenticatedSession, v1 } from '../test/handlers'
 import { wrapper } from '../test/utils'
 import { useSocialAuth } from './useSocialAuth'
 
@@ -20,6 +20,7 @@ describe('useSocialAuth', () => {
   it('lists connections and disconnects one', async () => {
     let connections = [connection('a'), connection('b')]
     server.use(
+      authenticatedSession(),
       http.get(providersPath, () =>
         HttpResponse.json({ status: 200, data: connections }),
       ),

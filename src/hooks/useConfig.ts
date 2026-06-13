@@ -9,6 +9,8 @@ export interface UseConfigResult {
   config: Config | null
   loading: boolean
   error: Error | null
+  /** Refetch the configuration. */
+  reload(): Promise<void>
 }
 
 /** Fetch the one-shot allauth configuration. */
@@ -18,6 +20,6 @@ export function useConfig(): UseConfigResult {
     () => client.getConfig().then((response) => ensureOk(response).data ?? null),
     [client],
   )
-  const { data: config, loading, error } = useResource(fetcher)
-  return { config, loading, error }
+  const { data: config, loading, error, reload } = useResource(fetcher)
+  return { config, loading, error, reload }
 }

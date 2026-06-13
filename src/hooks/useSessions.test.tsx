@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/setup'
-import { v1 } from '../test/handlers'
+import { authenticatedSession, v1 } from '../test/handlers'
 import { wrapper } from '../test/utils'
 import { useSessions } from './useSessions'
 
@@ -21,6 +21,7 @@ describe('useSessions', () => {
   it('lists sessions and revokes one', async () => {
     let sessions = [session(1, true), session(2)]
     server.use(
+      authenticatedSession(),
       http.get(`${v1}/auth/sessions`, () =>
         HttpResponse.json({ status: 200, data: sessions }),
       ),
