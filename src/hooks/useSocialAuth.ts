@@ -13,6 +13,8 @@ import type {
 export interface UseSocialAuthResult {
   /** Third-party accounts connected to the user. */
   connections: ProviderAccount[]
+  loading: boolean
+  error: Error | null
   /** Navigate to the provider's redirect (OAuth) flow. */
   redirectToProvider(
     providerId: string,
@@ -35,10 +37,10 @@ export interface UseSocialAuthResult {
 export function useSocialAuth(): UseSocialAuthResult {
   const { client, applyResponse } = useAllauthContext()
   const fetcher = useCallback(
-    () => client.getProviders().then((response) => response.data ?? []),
+    () => client.getProviders().then((response) => ensureOk(response).data ?? []),
     [client],
   )
-  const { data, setData } = useResource(fetcher)
+  const { data, loading, error, setData } = useResource(fetcher)
 
   const redirectToProvider = useCallback(
     (providerId: string, callbackUrl: string, process: AuthProcess = 'login') => {
@@ -74,6 +76,8 @@ export function useSocialAuth(): UseSocialAuthResult {
 
   return {
     connections: data ?? [],
+    loading,
+    error,
     redirectToProvider,
     authenticateByToken,
     providerSignup,

@@ -7,6 +7,8 @@ import type { Authenticator, TOTPAuthenticator, TOTPSetup } from '../types'
 export interface UseMFAResult {
   /** Configured authenticators (TOTP, recovery codes, WebAuthn). */
   authenticators: Authenticator[]
+  loading: boolean
+  error: Error | null
   /** Fetch the TOTP secret + provisioning URI to display a QR code. */
   getTOTPSetup(): Promise<TOTPSetup>
   activateTOTP(code: string): Promise<TOTPAuthenticator>
@@ -21,10 +23,11 @@ export interface UseMFAResult {
 export function useMFA(): UseMFAResult {
   const { client } = useAllauthContext()
   const fetcher = useCallback(
-    () => client.getAuthenticators().then((response) => response.data ?? []),
+    () =>
+      client.getAuthenticators().then((response) => ensureOk(response).data ?? []),
     [client],
   )
-  const { data, reload } = useResource(fetcher)
+  const { data, loading, error, reload } = useResource(fetcher)
 
   const getTOTPSetup = useCallback(async (): Promise<TOTPSetup> => {
     const response = await client.getTOTPStatus()
@@ -60,6 +63,8 @@ export function useMFA(): UseMFAResult {
 
   return {
     authenticators: data ?? [],
+    loading,
+    error,
     getTOTPSetup,
     activateTOTP,
     deactivateTOTP,

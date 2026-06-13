@@ -31,5 +31,24 @@ describe('useConfig', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.config?.account.is_open_for_signup).toBe(true)
     expect(result.current.config?.socialaccount?.providers[0]?.id).toBe('dummy')
+    expect(result.current.error).toBeNull()
+  })
+
+  it('exposes an error when the request fails', async () => {
+    server.use(
+      http.get(`${v1}/config`, () =>
+        HttpResponse.json(
+          { status: 500, errors: [{ message: 'boom', code: 'server_error' }] },
+          { status: 500 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useConfig(), { wrapper })
+
+    await waitFor(() => expect(result.current.error).not.toBeNull())
+    expect(result.current.error).toBeInstanceOf(Error)
+    expect(result.current.config).toBeNull()
+    expect(result.current.loading).toBe(false)
   })
 })

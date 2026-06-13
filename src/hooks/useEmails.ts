@@ -7,6 +7,8 @@ import type { AuthFlowResponse, EmailAddress } from '../types'
 export interface UseEmailsResult {
   /** Email addresses on the account. */
   emails: EmailAddress[]
+  loading: boolean
+  error: Error | null
   add(email: string): Promise<void>
   remove(email: string): Promise<void>
   markPrimary(email: string): Promise<void>
@@ -18,10 +20,10 @@ export interface UseEmailsResult {
 export function useEmails(): UseEmailsResult {
   const { client, applyResponse } = useAllauthContext()
   const fetcher = useCallback(
-    () => client.getEmails().then((response) => response.data ?? []),
+    () => client.getEmails().then((response) => ensureOk(response).data ?? []),
     [client],
   )
-  const { data, setData } = useResource(fetcher)
+  const { data, loading, error, setData } = useResource(fetcher)
 
   const add = useCallback(
     async (email: string) => {
@@ -58,6 +60,8 @@ export function useEmails(): UseEmailsResult {
 
   return {
     emails: data ?? [],
+    loading,
+    error,
     add,
     remove,
     markPrimary,

@@ -7,6 +7,8 @@ import type { UserSession } from '../types'
 export interface UseSessionsResult {
   /** Active sessions for the authenticated user. */
   sessions: UserSession[]
+  loading: boolean
+  error: Error | null
   revoke(session: UserSession): Promise<void>
 }
 
@@ -14,10 +16,10 @@ export interface UseSessionsResult {
 export function useSessions(): UseSessionsResult {
   const { client } = useAllauthContext()
   const fetcher = useCallback(
-    () => client.getSessions().then((response) => response.data ?? []),
+    () => client.getSessions().then((response) => ensureOk(response).data ?? []),
     [client],
   )
-  const { data, setData } = useResource(fetcher)
+  const { data, loading, error, setData } = useResource(fetcher)
 
   const revoke = useCallback(
     async (session: UserSession) => {
@@ -26,5 +28,5 @@ export function useSessions(): UseSessionsResult {
     [client, setData],
   )
 
-  return { sessions: data ?? [], revoke }
+  return { sessions: data ?? [], loading, error, revoke }
 }
