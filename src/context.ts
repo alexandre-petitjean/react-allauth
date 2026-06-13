@@ -1,12 +1,19 @@
 import { createContext } from 'react'
-import type { ClientType } from './types'
+import type { AllauthClient } from './client'
+import type { AuthFlowResponse } from './types'
 
-/** Configuration shared with every hook through {@link AllauthProvider}. */
+/** Value shared with every hook through {@link AllauthProvider}. */
 export interface AllauthContextValue {
-  /** Base URL of the django-allauth server, e.g. `https://api.example.com`. */
-  baseUrl: string
-  /** Which headless endpoint family to use. */
-  client: ClientType
+  /** Configured headless client. */
+  client: AllauthClient
+  /** Latest authentication/session response, or `null` while loading. */
+  session: AuthFlowResponse | null
+  /**
+   * Feed an auth-flow response back into shared state. Responses that carry
+   * session state (200/401/410) refresh the session; others are passed through
+   * untouched. Returns the same response for convenient chaining.
+   */
+  applyResponse: (response: AuthFlowResponse) => AuthFlowResponse
 }
 
 export const AllauthContext = createContext<AllauthContextValue | null>(null)

@@ -10,6 +10,7 @@ export default defineConfig({
     dts({
       tsconfigPath: './tsconfig.app.json',
       compilerOptions: { rootDir: 'src' },
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
       insertTypesEntry: true,
     }),
   ],
