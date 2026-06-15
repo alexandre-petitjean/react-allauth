@@ -25,35 +25,23 @@ class ErrorBoundary extends Component<
 export function App() {
   return (
     <AllauthProvider baseUrl={BASE_URL}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          height: '100vh',
-          fontFamily: 'system-ui, sans-serif',
-        }}
-      >
-        <section style={{ padding: '1.5rem', overflow: 'auto' }}>
-          <h1 style={{ marginTop: 0 }}>react-allauth playground</h1>
-          <p>Interact on the left; watch the API flow on the right.</p>
+      <div className="layout">
+        <section className="pane-left">
+          <h1>react-allauth playground</h1>
+          <p className="intro">
+            Interact on the left; watch the API flow on the right.
+          </p>
           <ErrorBoundary
             fallback={
-              <p>
-                <em>Could not reach the allauth backend (see playground/backend).</em>
+              <p className="muted">
+                Could not reach the allauth backend (see playground/backend).
               </p>
             }
           >
             <AuthDemo />
           </ErrorBoundary>
         </section>
-        <aside
-          style={{
-            padding: '1.5rem',
-            overflow: 'auto',
-            borderLeft: '1px solid #ddd',
-            background: '#fafafa',
-          }}
-        >
+        <aside className="pane-right">
           <Inspector />
         </aside>
       </div>

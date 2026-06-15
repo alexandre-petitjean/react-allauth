@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { BASE_URL } from './config'
 import { installFetchLogger } from './lib/apiLog'
+import './styles.css'
 
 // Record allauth API calls before anything renders (captures the initial session).
 installFetchLogger(BASE_URL)

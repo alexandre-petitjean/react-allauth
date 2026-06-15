@@ -1,5 +1,20 @@
 import { useAuth } from 'react-allauth'
 import { clearCalls, useApiLog } from '../lib/apiLog'
+import { JsonBlock } from './JsonBlock'
+
+function methodClass(method: string): string {
+  return `badge method method--${method.toLowerCase()}`
+}
+
+function statusClass(status: number): string {
+  if (status < 300) return 'badge status--ok'
+  if (status < 500) return 'badge status--warn'
+  return 'badge status--error'
+}
+
+function authStatusClass(status: string): string {
+  return status === 'authenticated' ? 'badge status--ok' : 'badge badge--state'
+}
 
 /** Right pane: live auth state plus a log of allauth API calls. */
 export function Inspector() {
@@ -7,38 +22,26 @@ export function Inspector() {
   const calls = useApiLog()
 
   return (
-    <div style={{ display: 'grid', gap: '1.5rem', alignContent: 'start' }}>
+    <div className="inspector">
       <section>
-        <h2 style={{ marginTop: 0 }}>State</h2>
-        <dl
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            gap: '0.25rem 1rem',
-            margin: 0,
-          }}
-        >
+        <h2>State</h2>
+        <dl className="state">
           <dt>status</dt>
-          <dd style={{ margin: 0 }}>
-            <code>{status}</code>
+          <dd>
+            <span className={authStatusClass(status)}>{status}</span>
           </dd>
           <dt>user</dt>
-          <dd style={{ margin: 0 }}>{user?.display ?? user?.email ?? '—'}</dd>
+          <dd>{user?.display ?? user?.email ?? '—'}</dd>
           <dt>pending flow</dt>
-          <dd style={{ margin: 0 }}>{flow?.current?.id ?? '—'}</dd>
+          <dd>{flow?.current?.id ?? '—'}</dd>
         </dl>
       </section>
 
       <section>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <h2 style={{ margin: 0 }}>API calls</h2>
+        <div className="inspector-head">
+          <h2>API calls</h2>
           <button
+            className="button button--ghost"
             type="button"
             onClick={clearCalls}
             disabled={calls.length === 0}
@@ -47,34 +50,17 @@ export function Inspector() {
           </button>
         </div>
         {calls.length === 0 ? (
-          <p>
-            <em>No calls yet.</em>
-          </p>
+          <p className="muted">No calls yet.</p>
         ) : (
-          <ol style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.75rem' }}>
+          <ol className="call-list">
             {calls.map((call) => (
-              <li
-                key={call.id}
-                style={{
-                  border: '1px solid #ddd',
-                  borderRadius: 4,
-                  padding: '0.5rem',
-                  background: '#fff',
-                }}
-              >
-                <code style={{ fontWeight: 600 }}>
-                  {call.method} {call.endpoint} → {call.status}
-                </code>
-                <pre
-                  style={{
-                    margin: '0.5rem 0 0',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  {JSON.stringify(call.response, null, 2)}
-                </pre>
+              <li key={call.id} className="call">
+                <div className="call-head">
+                  <span className={methodClass(call.method)}>{call.method}</span>
+                  <span className="endpoint">{call.endpoint}</span>
+                  <span className={statusClass(call.status)}>{call.status}</span>
+                </div>
+                <JsonBlock value={call.response} />
               </li>
             ))}
           </ol>

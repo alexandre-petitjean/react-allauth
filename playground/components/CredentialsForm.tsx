@@ -34,12 +34,9 @@ export function CredentialsForm({
   }
 
   return (
-    <form
-      onSubmit={(event) => void handleSubmit(event)}
-      style={{ display: 'grid', gap: '0.5rem' }}
-    >
+    <form className="form" onSubmit={(event) => void handleSubmit(event)}>
       <h2>{title}</h2>
-      <label style={{ display: 'grid', gap: '0.25rem' }}>
+      <label className="field">
         Email
         <input
           type="email"
@@ -49,7 +46,7 @@ export function CredentialsForm({
           onChange={(event) => setEmail(event.target.value)}
         />
       </label>
-      <label style={{ display: 'grid', gap: '0.25rem' }}>
+      <label className="field">
         Password
         <input
           type="password"
@@ -59,11 +56,11 @@ export function CredentialsForm({
           onChange={(event) => setPassword(event.target.value)}
         />
       </label>
-      <button type="submit" disabled={submitting}>
+      <button className="button" type="submit" disabled={submitting}>
         {submitting ? '…' : submitLabel}
       </button>
       {errors.length > 0 && (
-        <ul style={{ color: '#b00020', margin: 0 }}>
+        <ul className="form-errors">
           {errors.map((error, index) => (
             <li key={`${error.code}-${index}`}>
               {error.param ? `${error.param}: ` : ''}
