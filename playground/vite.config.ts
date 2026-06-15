@@ -12,4 +12,14 @@ export default defineConfig({
       'react-allauth': resolve(import.meta.dirname, '../src/index.ts'),
     },
   },
+  // Proxy the headless API to the local backend so the app talks to it
+  // same-origin: no CORS, and cookies + CSRF work as in a real deployment.
+  // The port is fixed so the origin is stable for the backend's CSRF trust list.
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/_allauth': 'http://localhost:8000',
+    },
+  },
 })

@@ -16,6 +16,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "backend", "127.0.0.1"]
 
+# The Vite dev playground runs on a different port and proxies the API here;
+# trust its origin for CSRF so login/signup POSTs are accepted.
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+
 
 # Application definition
 
