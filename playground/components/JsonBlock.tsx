@@ -5,7 +5,7 @@ export function JsonBlock({ value }: { value: unknown }) {
   const code = JSON.stringify(value, null, 2)
 
   return (
-    <Highlight theme={themes.vsDark} code={code} language="json">
+    <Highlight theme={themes.github} code={code} language="json">
       {({ style, tokens, getLineProps, getTokenProps }) => (
         <pre className="json-block" style={style}>
           {tokens.map((line, i) => (
