@@ -1,19 +1,10 @@
-// Exercises the public API exactly like a real consumer: through the package
-// name `react-allauth` (aliased to `../src/index.ts`). The hooks talk to the
-// allauth backend from `playground/backend`; the showcase is wrapped in an error
-// boundary so a missing backend degrades gracefully.
+// Interactive playground for the auth hooks, consuming `react-allauth` through
+// its package name (aliased to `../src/index.ts`) against the local backend in
+// `playground/backend`. The showcase is wrapped in an error boundary so a
+// missing backend degrades gracefully.
 import { Component, type ReactNode } from 'react'
-import {
-  AllauthProvider,
-  useAuth,
-  useConfig,
-  useEmails,
-  useMFA,
-  usePassword,
-  useSessions,
-  useSocialAuth,
-  useWebAuthn,
-} from 'react-allauth'
+import { AllauthProvider } from 'react-allauth'
+import { AuthDemo } from './components/AuthDemo'
 
 class ErrorBoundary extends Component<
   { children: ReactNode; fallback: ReactNode },
@@ -30,45 +21,19 @@ class ErrorBoundary extends Component<
   }
 }
 
-function HookShowcase() {
-  const auth = useAuth()
-  const { config } = useConfig()
-  const emails = useEmails()
-  const mfa = useMFA()
-  const password = usePassword()
-  const sessions = useSessions()
-  const social = useSocialAuth()
-  const webauthn = useWebAuthn()
-
-  // Referencing the typed members proves the contract gives real autocomplete.
-  return (
-    <ul>
-      <li>status: {auth.status}</li>
-      <li>user: {auth.user?.display ?? 'none'}</li>
-      <li>pending flow: {auth.flow?.current?.id ?? 'none'}</li>
-      <li>open for signup: {String(config?.account.is_open_for_signup)}</li>
-      <li>emails: {emails.emails.length}</li>
-      <li>authenticators: {mfa.authenticators.length}</li>
-      <li>sessions: {sessions.sessions.length}</li>
-      <li>connections: {social.connections.length}</li>
-      <li>can change password: {String(typeof password.change === 'function')}</li>
-      <li>can register passkey: {String(typeof webauthn.register === 'function')}</li>
-    </ul>
-  )
-}
-
 export function App() {
   return (
     <AllauthProvider baseUrl="http://localhost:8000">
       <main
-        style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 640 }}
+        style={{
+          fontFamily: 'system-ui, sans-serif',
+          padding: '2rem',
+          maxWidth: 480,
+          margin: '0 auto',
+        }}
       >
         <h1>react-allauth playground</h1>
-        <p>
-          This app consumes <code>react-allauth</code> through its public API.
-          Editing <code>src/*</code> hot-reloads this view.
-        </p>
-        <h2>Hooks</h2>
+        <p>Interactive demo of the auth hooks against the local backend.</p>
         <ErrorBoundary
           fallback={
             <p>
@@ -76,7 +41,7 @@ export function App() {
             </p>
           }
         >
-          <HookShowcase />
+          <AuthDemo />
         </ErrorBoundary>
       </main>
     </AllauthProvider>
