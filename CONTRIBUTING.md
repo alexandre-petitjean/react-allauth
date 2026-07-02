@@ -30,6 +30,7 @@ every commit.
 | `npm run test`          | Run the test suite with Vitest             |
 | `npm run test:watch`    | Run the test suite in watch mode           |
 | `npm run test:coverage` | Run the tests with the coverage gate       |
+| `npm run test:e2e`      | Run the Playwright e2e suite (see below)   |
 | `npm run lint`          | Lint the source with ESLint                |
 | `npm run typecheck`     | Type-check the project with TypeScript     |
 
@@ -43,6 +44,10 @@ npm run dev                                  # front on :5173
 ```
 
 See [`playground/README.md`](./playground/README.md) for details.
+
+The e2e suite (`npm run test:e2e`) drives this same stack: the backend and
+Mailpit must be up via docker compose; Playwright starts the Vite dev server
+itself.
 
 ## Testing conventions
 

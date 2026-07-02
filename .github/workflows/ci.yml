@@ -23,3 +23,32 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:coverage
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start the playground backend
+        run: docker compose up -d --build
+        working-directory: playground/backend
+      - run: npx playwright install --with-deps chromium
+      - name: Wait for the backend
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/_allauth/browser/v1/config > /dev/null && exit 0
+            sleep 2
+          done
+          echo "Backend did not come up" >&2
+          docker compose -f playground/backend/docker-compose.yml logs
+          exit 1
+      - run: npm run test:e2e
+        env:
+          CI: 'true'
+      - name: Backend logs on failure
+        if: failure()
+        run: docker compose -f playground/backend/docker-compose.yml logs
