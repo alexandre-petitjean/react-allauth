@@ -16,6 +16,10 @@ dist-ssr
 test-results/
 playwright-report/
 
+# VitePress artifacts
+docs/site/.vitepress/dist/
+docs/site/.vitepress/cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
