@@ -15,3 +15,23 @@ if User.objects.filter(username=username).exists():
 else:
     User.objects.create_superuser(username, email, password)
     print(f"Created superuser {username!r}.")
+
+# Also seed a verified regular user for e2e scenarios: login must not be
+# blocked by ACCOUNT_EMAIL_VERIFICATION="mandatory".
+from allauth.account.models import EmailAddress
+
+e2e_email = os.environ.get("PLAYGROUND_USER_EMAIL", "user@example.com")
+e2e_password = os.environ.get("PLAYGROUND_USER_PASSWORD", "playground-e2e-pass")
+
+user = User.objects.filter(username="user").first()
+if user is None:
+    user = User.objects.create_user("user", e2e_email, e2e_password)
+    print("Created playground user 'user'.")
+else:
+    print("Playground user 'user' already exists, skipping.")
+
+EmailAddress.objects.update_or_create(
+    user=user,
+    email=e2e_email,
+    defaults={"verified": True, "primary": True},
+)
