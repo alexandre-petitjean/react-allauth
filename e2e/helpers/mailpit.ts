@@ -22,7 +22,8 @@ export async function latestCodeFor(email: string): Promise<string> {
         `${MAILPIT_URL}/api/v1/message/${messages[0]!.ID}`,
       )
       const body = ((await detail.json()) as { Text: string }).Text
-      const match = body.match(/^\s*([A-Z0-9]{6,8})\s*$/m)
+      // The code sits alone on its own line, e.g. "NDKM-PNCR".
+      const match = body.match(/^\s*([A-Z0-9]{4,8}(?:-[A-Z0-9]{4,8})?)\s*$/m)
       if (match) return match[1]!
       throw new Error(`No verification code found in message:\n${body}`)
     }
