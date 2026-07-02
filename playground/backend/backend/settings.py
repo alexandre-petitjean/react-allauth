@@ -131,6 +131,10 @@ EMAIL_PORT = 1025
 
 AUTHENTICATION_BACKENDS = ("allauth.account.auth_backends.AuthenticationBackend",)
 
+# The playground is a local dev/e2e target: disable rate limits so repeated
+# e2e runs (which include failed-login scenarios) never get throttled.
+ACCOUNT_RATE_LIMITS = False
+
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
