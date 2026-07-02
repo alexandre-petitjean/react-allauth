@@ -80,4 +80,45 @@ describe('useMFA', () => {
     const codes = await act(() => result.current.viewRecoveryCodes())
     expect(codes).toEqual(['code-a', 'code-b'])
   })
+
+  it('completes an mfa_authenticate flow with a code', async () => {
+    let posted: unknown
+    server.use(
+      http.post(`${v1}/auth/2fa/authenticate`, async ({ request }) => {
+        posted = await request.json()
+        return HttpResponse.json(
+          { status: 200, meta: { is_authenticated: true }, data: {} },
+          { status: 200 },
+        )
+      }),
+    )
+
+    const { result } = renderHook(() => useMFA(), { wrapper })
+
+    const response = await act(() => result.current.authenticate('123456'))
+    expect(response.status).toBe(200)
+    expect(posted).toMatchObject({ code: '123456' })
+  })
+
+  it('returns the error envelope on a wrong mfa code', async () => {
+    server.use(
+      http.post(`${v1}/auth/2fa/authenticate`, () =>
+        HttpResponse.json(
+          {
+            status: 400,
+            errors: [
+              { message: 'Incorrect code.', code: 'incorrect_code', param: 'code' },
+            ],
+          },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useMFA(), { wrapper })
+
+    const response = await act(() => result.current.authenticate('000000'))
+    expect(response.status).toBe(400)
+    expect(response.errors?.[0]?.code).toBe('incorrect_code')
+  })
 })

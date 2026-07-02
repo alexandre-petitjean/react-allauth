@@ -230,6 +230,14 @@ export class AllauthClient {
     )
   }
 
+  mfaAuthenticate(code: string): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/2fa/authenticate', { code })
+  }
+
+  mfaReauthenticate(code: string): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/2fa/reauthenticate', { code })
+  }
+
   getProviders(): Promise<AllauthResponse<ProviderAccount[]>> {
     return this.request<ProviderAccount[]>('GET', '/account/providers')
   }

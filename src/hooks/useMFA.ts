@@ -2,7 +2,12 @@ import { useCallback } from 'react'
 import { useAllauthContext } from './useAllauthContext'
 import { useResource } from './useResource'
 import { AllauthRequestError, ensureData, ensureOk } from '../errors'
-import type { Authenticator, TOTPAuthenticator, TOTPSetup } from '../types'
+import type {
+  AuthFlowResponse,
+  Authenticator,
+  TOTPAuthenticator,
+  TOTPSetup,
+} from '../types'
 
 export interface UseMFAResult {
   /** Configured authenticators (TOTP, recovery codes, WebAuthn). */
@@ -19,11 +24,15 @@ export interface UseMFAResult {
   generateRecoveryCodes(): Promise<string[]>
   /** Return the still-unused recovery codes. */
   viewRecoveryCodes(): Promise<string[]>
+  /** Complete a pending mfa_authenticate flow with a TOTP or recovery code. */
+  authenticate(code: string): Promise<AuthFlowResponse>
+  /** Re-authenticate with a TOTP or recovery code. */
+  reauthenticate(code: string): Promise<AuthFlowResponse>
 }
 
 /** Multi-factor authentication: TOTP and recovery codes. */
 export function useMFA(): UseMFAResult {
-  const { client, session } = useAllauthContext()
+  const { client, session, applyResponse } = useAllauthContext()
   const isAuthenticated = session?.meta?.is_authenticated ?? false
   const fetcher = useCallback(
     () =>
@@ -68,6 +77,16 @@ export function useMFA(): UseMFAResult {
     return response.data?.unused_codes ?? []
   }, [client])
 
+  const authenticate = useCallback(
+    async (code: string) => applyResponse(await client.mfaAuthenticate(code)),
+    [client, applyResponse],
+  )
+
+  const reauthenticate = useCallback(
+    async (code: string) => applyResponse(await client.mfaReauthenticate(code)),
+    [client, applyResponse],
+  )
+
   return {
     authenticators: data ?? [],
     loading,
@@ -78,5 +97,7 @@ export function useMFA(): UseMFAResult {
     deactivateTOTP,
     generateRecoveryCodes,
     viewRecoveryCodes,
+    authenticate,
+    reauthenticate,
   }
 }
