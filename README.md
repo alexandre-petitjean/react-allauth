@@ -12,6 +12,9 @@
 > This package is under active development. All hooks are implemented and tested,
 > but the API may still change between `0.x` releases. See [Stability](#stability).
 
+**Documentation:** guides and the full hook reference live at
+[alexandre-petitjean.github.io/react-allauth](https://alexandre-petitjean.github.io/react-allauth/).
+
 ## Why this exists
 
 django-allauth ships an excellent headless API, but its official front-end
