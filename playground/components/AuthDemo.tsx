@@ -1,5 +1,7 @@
 import { useAuth } from 'react-allauth'
 import { CredentialsForm } from './CredentialsForm'
+import { SessionsPanel } from './SessionsPanel'
+import { VerifyEmailForm } from './VerifyEmailForm'
 
 /** Interactive auth demo: login, signup, logout and current state. */
 export function AuthDemo() {
@@ -19,15 +21,18 @@ export function AuthDemo() {
         <button className="button" type="button" onClick={() => void logout()}>
           Log out
         </button>
+        <SessionsPanel />
       </section>
     )
   }
 
   const pendingMfa =
     flow?.current?.id === 'mfa_authenticate' ? flow.current : null
+  const pendingVerification = flow?.current?.id === 'verify_email'
 
   return (
     <div>
+      {pendingVerification && <VerifyEmailForm />}
       {pendingMfa && (
         <p className="muted" role="status">
           MFA required ({pendingMfa.types?.join(', ') ?? 'authenticator'}).
