@@ -6,6 +6,12 @@
   "license": "MIT",
   "author": "Alexandre Petitjean",
   "description": "React components and hooks for the django-allauth headless API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexandre-petitjean/react-allauth.git"
+  },
+  "homepage": "https://alexandre-petitjean.github.io/react-allauth/",
+  "bugs": "https://github.com/alexandre-petitjean/react-allauth/issues",
   "files": [
     "dist"
   ],
