@@ -8,5 +8,14 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**'],
+      exclude: ['src/test/**'],
+      thresholds: {
+        lines: 89,
+        statements: 89,
+      },
+    },
   },
 })
