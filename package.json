@@ -1,11 +1,17 @@
 {
   "name": "react-allauth",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "author": "Alexandre Petitjean",
   "description": "React components and hooks for the django-allauth headless API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexandre-petitjean/react-allauth.git"
+  },
+  "homepage": "https://alexandre-petitjean.github.io/react-allauth/",
+  "bugs": "https://github.com/alexandre-petitjean/react-allauth/issues",
   "files": [
     "dist"
   ],
