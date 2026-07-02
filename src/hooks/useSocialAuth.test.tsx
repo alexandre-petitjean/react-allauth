@@ -88,4 +88,43 @@ describe('useSocialAuth', () => {
     submit.mockRestore()
     form?.remove()
   })
+
+  it('returns no connections without calling the API when anonymous', async () => {
+    let called = false
+    server.use(
+      http.get(providersPath, () => {
+        called = true
+        return HttpResponse.json({ status: 200, data: [] })
+      }),
+    )
+
+    const { result } = renderHook(() => useSocialAuth(), { wrapper })
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.connections).toEqual([])
+    expect(called).toBe(false)
+  })
+
+  it('throws from disconnect and keeps connections on failure', async () => {
+    server.use(
+      authenticatedSession(),
+      http.get(providersPath, () =>
+        HttpResponse.json({ status: 200, data: [connection('a')] }),
+      ),
+      http.delete(providersPath, () =>
+        HttpResponse.json(
+          { status: 400, errors: [{ message: 'last account', code: 'invalid' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useSocialAuth(), { wrapper })
+    await waitFor(() => expect(result.current.connections).toHaveLength(1))
+
+    await expect(
+      result.current.disconnect(result.current.connections[0]!),
+    ).rejects.toMatchObject({ name: 'AllauthRequestError' })
+    expect(result.current.connections).toHaveLength(1)
+  })
 })
