@@ -63,4 +63,60 @@ describe('useWebAuthn', () => {
     expect(response.status).toBe(200)
     expect(response.meta?.is_authenticated).toBe(true)
   })
+
+  it('throws AllauthRequestError when creation options are missing', async () => {
+    server.use(
+      http.get(`${v1}/account/authenticators/webauthn`, () =>
+        HttpResponse.json(
+          {
+            status: 401,
+            errors: [{ message: 'reauth required', code: 'reauthentication_required' }],
+          },
+          { status: 401 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await expect(result.current.register('Key')).rejects.toMatchObject({
+      name: 'AllauthRequestError',
+      status: 401,
+    })
+  })
+
+  it('throws AllauthRequestError when request options are missing', async () => {
+    server.use(
+      http.get(`${v1}/auth/webauthn/login`, () =>
+        HttpResponse.json({ status: 200, data: {} }),
+      ),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await expect(result.current.login()).rejects.toMatchObject({
+      name: 'AllauthRequestError',
+    })
+  })
+
+  it('surfaces a rejected registration ceremony', async () => {
+    server.use(
+      http.get(`${v1}/account/authenticators/webauthn`, () =>
+        HttpResponse.json({ status: 200, data: { creation_options: { publicKey } } }),
+      ),
+      http.post(`${v1}/account/authenticators/webauthn`, () =>
+        HttpResponse.json(
+          { status: 400, errors: [{ message: 'invalid credential', code: 'invalid' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await expect(result.current.register('Key')).rejects.toMatchObject({
+      name: 'AllauthRequestError',
+      status: 400,
+    })
+  })
 })

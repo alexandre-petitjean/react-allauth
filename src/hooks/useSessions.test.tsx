@@ -95,7 +95,7 @@ describe('useSessions', () => {
     await waitFor(() => expect(result.current.sessions).toHaveLength(2))
 
     await expect(
-      act(() => result.current.revoke(result.current.sessions[1]!)),
+      result.current.revoke(result.current.sessions[1]!),
     ).rejects.toMatchObject({ name: 'AllauthRequestError' })
     expect(result.current.sessions).toHaveLength(2)
   })
