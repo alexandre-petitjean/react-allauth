@@ -1,5 +1,6 @@
 import { useAuth } from 'react-allauth'
 import { CredentialsForm } from './CredentialsForm'
+import { MfaAuthenticateForm } from './MfaAuthenticateForm'
 import { SessionsPanel } from './SessionsPanel'
 import { VerifyEmailForm } from './VerifyEmailForm'
 
@@ -34,10 +35,12 @@ export function AuthDemo() {
     <div>
       {pendingVerification && <VerifyEmailForm />}
       {pendingMfa && (
-        <p className="muted" role="status">
-          MFA required ({pendingMfa.types?.join(', ') ?? 'authenticator'}).
-          Completing the 2FA flow is not supported by the library yet.
-        </p>
+        <>
+          <p className="muted" role="status">
+            MFA required ({pendingMfa.types?.join(', ') ?? 'authenticator'}).
+          </p>
+          <MfaAuthenticateForm />
+        </>
       )}
       <CredentialsForm title="Log in" submitLabel="Log in" onSubmit={login} />
       <CredentialsForm title="Sign up" submitLabel="Sign up" onSubmit={signup} />
