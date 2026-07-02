@@ -71,7 +71,7 @@ export function App() {
 | `useConfig`     | Fetch the one-shot allauth configuration               |
 | `usePassword`   | Change password and the reset-by-key flow              |
 | `useEmails`     | Manage email addresses and verification                |
-| `useMFA`        | TOTP and recovery codes                                |
+| `useMFA`        | TOTP, recovery codes and completing 2FA login          |
 | `useWebAuthn`   | Passkey registration and authentication                |
 | `useSocialAuth` | Provider redirect / token login and connected accounts |
 | `useSessions`   | List and revoke active sessions                        |

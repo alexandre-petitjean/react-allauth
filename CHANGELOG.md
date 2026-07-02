@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `useMFA().authenticate(code)` and `useMFA().reauthenticate(code)` — complete an `mfa_authenticate` flow (TOTP or recovery code); the last gap in the headless API contract.
+- Playwright e2e suite driving the playground against the real django-allauth backend in CI (login, signup + email verification by code, session revocation).
+- Coverage thresholds enforced in CI; Dependabot; contributing guide.
+
 ## [0.1.0] - 2026-06-15
 
 ### Added
