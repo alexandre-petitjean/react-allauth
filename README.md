@@ -100,7 +100,7 @@ vulnerabilities privately — see [SECURITY.md](./SECURITY.md) — and read the
 
 ## Contributing
 
-Contributions are welcome. Common scripts:
+Contributions are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md). Common scripts:
 
 | Script               | Description                               |
 | -------------------- | ----------------------------------------- |
