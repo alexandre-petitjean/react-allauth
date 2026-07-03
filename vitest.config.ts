@@ -14,11 +14,13 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**'],
       exclude: ['src/test/**'],
+      // Baselines re-measured under Vitest 4's AST-based v8 remapping, which
+      // counts lines/branches more strictly than Vitest 3 did.
       thresholds: {
-        lines: 89,
-        statements: 89,
-        branches: 84,
-        functions: 81,
+        lines: 86,
+        statements: 85,
+        branches: 75,
+        functions: 78,
       },
     },
   },
