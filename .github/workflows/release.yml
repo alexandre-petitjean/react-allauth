@@ -27,8 +27,14 @@ jobs:
       - name: Publish to npm (skip if the version already exists)
         run: |
           version=$(node -p "require('./package.json').version")
+          # Pre-releases (e.g. 1.0.0-rc.1) go to the "next" dist-tag so they
+          # never become "latest" for plain `npm install`.
+          case "$version" in
+            *-*) dist_tag="next" ;;
+            *) dist_tag="latest" ;;
+          esac
           if npm view "react-allauth@${version}" version > /dev/null 2>&1; then
             echo "react-allauth@${version} is already published — skipping."
           else
-            npm publish --provenance --access public
+            npm publish --provenance --access public --tag "$dist_tag"
           fi
