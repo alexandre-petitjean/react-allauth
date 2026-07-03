@@ -205,6 +205,10 @@ export class AllauthClient {
     return this.request('POST', '/auth/email/verify', { key })
   }
 
+  resendVerificationEmail(): Promise<AllauthResponse> {
+    return this.request('POST', '/auth/email/verify/resend')
+  }
+
   getAuthenticators(): Promise<AllauthResponse<Authenticator[]>> {
     return this.request<Authenticator[]>('GET', '/account/authenticators')
   }

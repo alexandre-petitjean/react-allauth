@@ -79,4 +79,37 @@ describe('useEmails', () => {
     const response = await act(() => result.current.verify('verify-key'))
     expect(response.status).toBe(200)
   })
+
+  it('resends the pending signup verification email', async () => {
+    let called = false
+    server.use(
+      http.post(`${v1}/auth/email/verify/resend`, () => {
+        called = true
+        return HttpResponse.json({ status: 200 })
+      }),
+    )
+
+    const { result } = renderHook(() => useEmails(), { wrapper })
+
+    await act(() => result.current.resendVerification())
+    expect(called).toBe(true)
+  })
+
+  it('rejects resend when no verification is pending', async () => {
+    server.use(
+      http.post(`${v1}/auth/email/verify/resend`, () =>
+        HttpResponse.json(
+          { status: 409, errors: [{ message: 'Conflict.', code: 'conflict' }] },
+          { status: 409 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useEmails(), { wrapper })
+
+    await expect(result.current.resendVerification()).rejects.toMatchObject({
+      name: 'AllauthRequestError',
+      status: 409,
+    })
+  })
 })

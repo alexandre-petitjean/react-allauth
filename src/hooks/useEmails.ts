@@ -16,6 +16,12 @@ export interface UseEmailsResult {
   markPrimary(email: string): Promise<void>
   requestVerification(email: string): Promise<void>
   verify(key: string): Promise<AuthFlowResponse>
+  /**
+   * Resend the verification email of the pending signup flow. Unlike
+   * `requestVerification`, this needs no authenticated session. Throws when
+   * nothing is pending or the resend is rate limited.
+   */
+  resendVerification(): Promise<void>
 }
 
 /** Manage the account's email addresses and verification. */
@@ -64,6 +70,12 @@ export function useEmails(): UseEmailsResult {
     [client, applyResponse],
   )
 
+  // The resend reply is a bare 200 without session payload: applying it would
+  // clobber the pending-flow state, so this is a mutation, not a flow method.
+  const resendVerification = useCallback(async () => {
+    ensureOk(await client.resendVerificationEmail())
+  }, [client])
+
   return {
     emails: data ?? [],
     loading,
@@ -74,5 +86,6 @@ export function useEmails(): UseEmailsResult {
     markPrimary,
     requestVerification,
     verify,
+    resendVerification,
   }
 }
