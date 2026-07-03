@@ -119,4 +119,56 @@ describe('useWebAuthn', () => {
       status: 400,
     })
   })
+
+  it('renames a passkey', async () => {
+    let sent: unknown
+    server.use(
+      http.put(`${v1}/account/authenticators/webauthn`, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({
+          status: 200,
+          data: { type: 'webauthn', id: 7, name: 'Renamed', created_at: 1, last_used_at: null },
+        })
+      }),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    const authenticator = await act(() => result.current.rename(7, 'Renamed'))
+    expect(sent).toMatchObject({ id: 7, name: 'Renamed' })
+    expect(authenticator.name).toBe('Renamed')
+  })
+
+  it('removes passkeys', async () => {
+    let sent: unknown
+    server.use(
+      http.delete(`${v1}/account/authenticators/webauthn`, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({ status: 200 })
+      }),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await act(() => result.current.remove([7, 9]))
+    expect(sent).toMatchObject({ authenticators: [7, 9] })
+  })
+
+  it('rejects a refused removal with AllauthRequestError', async () => {
+    server.use(
+      http.delete(`${v1}/account/authenticators/webauthn`, () =>
+        HttpResponse.json(
+          { status: 400, errors: [{ message: 'cannot remove', code: 'invalid' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await expect(result.current.remove([7])).rejects.toMatchObject({
+      name: 'AllauthRequestError',
+      status: 400,
+    })
+  })
 })

@@ -335,6 +335,23 @@ export class AllauthClient {
     )
   }
 
+  renameWebAuthn(
+    id: number,
+    name: string,
+  ): Promise<AllauthResponse<WebAuthnAuthenticator>> {
+    return this.request<WebAuthnAuthenticator>(
+      'PUT',
+      '/account/authenticators/webauthn',
+      { id, name },
+    )
+  }
+
+  removeWebAuthn(ids: number[]): Promise<AllauthResponse> {
+    return this.request('DELETE', '/account/authenticators/webauthn', {
+      authenticators: ids,
+    })
+  }
+
   getWebAuthnRequestOptions(
     flow: WebAuthnFlow,
   ): Promise<AllauthResponse<WebAuthnRequestOptions>> {

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import { useAllauthContext } from './useAllauthContext'
-import { AllauthRequestError, ensureData } from '../errors'
+import { AllauthRequestError, ensureData, ensureOk } from '../errors'
 import type {
   AuthFlowResponse,
   WebAuthnAuthenticator,
@@ -17,6 +17,10 @@ export interface UseWebAuthnResult {
   login(): Promise<AuthFlowResponse>
   /** Re-authenticate using a passkey. */
   reauthenticate(): Promise<AuthFlowResponse>
+  /** Rename a registered passkey. */
+  rename(id: number, name: string): Promise<WebAuthnAuthenticator>
+  /** Remove registered passkeys. Refresh lists via `useMFA().reload()`. */
+  remove(ids: number[]): Promise<void>
 }
 
 /** WebAuthn / passkey registration and authentication. */
@@ -57,5 +61,18 @@ export function useWebAuthn(): UseWebAuthnResult {
     [runCeremony],
   )
 
-  return { register, authenticate, login, reauthenticate }
+  const rename = useCallback(
+    async (id: number, name: string) =>
+      ensureData(await client.renameWebAuthn(id, name)),
+    [client],
+  )
+
+  const remove = useCallback(
+    async (ids: number[]) => {
+      ensureOk(await client.removeWebAuthn(ids))
+    },
+    [client],
+  )
+
+  return { register, authenticate, login, reauthenticate, rename, remove }
 }
