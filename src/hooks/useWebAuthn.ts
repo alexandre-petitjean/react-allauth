@@ -4,6 +4,7 @@ import { useAllauthContext } from './useAllauthContext'
 import { AllauthRequestError, ensureData, ensureOk } from '../errors'
 import type {
   AuthFlowResponse,
+  PasskeySignupData,
   WebAuthnAuthenticator,
   WebAuthnFlow,
 } from '../types'
@@ -21,6 +22,8 @@ export interface UseWebAuthnResult {
   rename(id: number, name: string): Promise<WebAuthnAuthenticator>
   /** Remove registered passkeys. Refresh lists via `useMFA().reload()`. */
   remove(ids: number[]): Promise<void>
+  /** Sign up passwordless: create the account, then register a passkey. */
+  signup(data: PasskeySignupData, name?: string): Promise<AuthFlowResponse>
 }
 
 /** WebAuthn / passkey registration and authentication. */
@@ -74,5 +77,26 @@ export function useWebAuthn(): UseWebAuthnResult {
     [client],
   )
 
-  return { register, authenticate, login, reauthenticate, rename, remove }
+  const signup = useCallback(
+    async (data: PasskeySignupData, name?: string) => {
+      applyResponse(await client.signupWebAuthn(data))
+      const optionsResponse = await client.getWebAuthnSignupOptions()
+      const publicKey = optionsResponse.data?.creation_options?.publicKey
+      if (!publicKey) throw new AllauthRequestError(optionsResponse)
+
+      const credential = await startRegistration({ optionsJSON: publicKey })
+      return applyResponse(await client.completeWebAuthnSignup(name, credential))
+    },
+    [client, applyResponse],
+  )
+
+  return {
+    register,
+    authenticate,
+    login,
+    reauthenticate,
+    rename,
+    remove,
+    signup,
+  }
 }

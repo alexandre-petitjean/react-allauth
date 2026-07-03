@@ -16,6 +16,7 @@ import type {
   ConfirmPasswordResetInput,
   EmailAddress,
   LoginCredentials,
+  PasskeySignupData,
   ProviderAccount,
   ProviderToken,
   ReauthenticateData,
@@ -363,5 +364,20 @@ export class AllauthClient {
     credential: AuthenticationResponseJSON,
   ): Promise<AuthFlowResponse> {
     return this.request('POST', `/auth/webauthn/${flow}`, { credential })
+  }
+
+  signupWebAuthn(data: PasskeySignupData): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/webauthn/signup', data)
+  }
+
+  getWebAuthnSignupOptions(): Promise<AllauthResponse<WebAuthnCreationOptions>> {
+    return this.request<WebAuthnCreationOptions>('GET', '/auth/webauthn/signup')
+  }
+
+  completeWebAuthnSignup(
+    name: string | undefined,
+    credential: RegistrationResponseJSON,
+  ): Promise<AuthFlowResponse> {
+    return this.request('PUT', '/auth/webauthn/signup', { name, credential })
   }
 }

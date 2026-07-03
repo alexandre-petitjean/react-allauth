@@ -171,4 +171,76 @@ describe('useWebAuthn', () => {
       status: 400,
     })
   })
+
+  it('signs up with a passkey through the full ceremony', async () => {
+    const calls: string[] = []
+    let putBody: unknown
+    server.use(
+      http.post(`${v1}/auth/webauthn/signup`, () => {
+        calls.push('post')
+        return HttpResponse.json(
+          {
+            status: 401,
+            data: { flows: [{ id: 'mfa_signup_webauthn', is_pending: true }] },
+            meta: { is_authenticated: false },
+          },
+          { status: 401 },
+        )
+      }),
+      http.get(`${v1}/auth/webauthn/signup`, () => {
+        calls.push('get')
+        return HttpResponse.json({
+          status: 200,
+          data: { creation_options: { publicKey } },
+        })
+      }),
+      http.put(`${v1}/auth/webauthn/signup`, async ({ request }) => {
+        calls.push('put')
+        putBody = await request.json()
+        return HttpResponse.json(
+          { status: 200, meta: { is_authenticated: true }, data: {} },
+          { status: 200 },
+        )
+      }),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    const response = await act(() =>
+      result.current.signup({ email: 'new@example.com' }, 'My passkey'),
+    )
+    expect(calls).toEqual(['post', 'get', 'put'])
+    expect(putBody).toMatchObject({
+      name: 'My passkey',
+      credential: { id: 'cred-id' },
+    })
+    expect(response.meta?.is_authenticated).toBe(true)
+  })
+
+  it('rejects passkey signup when creation options are missing', async () => {
+    server.use(
+      http.post(`${v1}/auth/webauthn/signup`, () =>
+        HttpResponse.json(
+          {
+            status: 401,
+            data: { flows: [{ id: 'mfa_signup_webauthn', is_pending: true }] },
+            meta: { is_authenticated: false },
+          },
+          { status: 401 },
+        ),
+      ),
+      http.get(`${v1}/auth/webauthn/signup`, () =>
+        HttpResponse.json(
+          { status: 409, errors: [{ message: 'Conflict.', code: 'conflict' }] },
+          { status: 409 },
+        ),
+      ),
+    )
+
+    const { result } = renderHook(() => useWebAuthn(), { wrapper })
+
+    await expect(
+      result.current.signup({ email: 'new@example.com' }),
+    ).rejects.toMatchObject({ name: 'AllauthRequestError', status: 409 })
+  })
 })

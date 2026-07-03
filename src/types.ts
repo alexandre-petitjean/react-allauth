@@ -137,6 +137,9 @@ export interface SignupData {
   password: string
 }
 
+/** Signup data for the passwordless (passkey) flow. */
+export type PasskeySignupData = Omit<SignupData, 'password'>
+
 export interface ReauthenticateData {
   password: string
 }
