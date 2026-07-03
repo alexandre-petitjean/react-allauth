@@ -48,7 +48,7 @@ export function installFetchLogger(baseUrl: string) {
       const method = (
         init?.method ?? (input instanceof Request ? input.method : 'GET')
       ).toUpperCase()
-      let body: unknown = null
+      let body: unknown
       try {
         body = await response.clone().json()
       } catch {
