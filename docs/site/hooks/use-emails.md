@@ -18,6 +18,8 @@ interface UseEmailsResult {
   markPrimary(email: string): Promise<void>
   requestVerification(email: string): Promise<void>
   verify(key: string): Promise<AuthFlowResponse>
+  /** Resend the pending signup verification email (no session required). */
+  resendVerification(): Promise<void>
 }
 ```
 
@@ -51,3 +53,7 @@ function VerifyEmail() {
 - `verify` accepts either an emailed key (link flow) or a code
   (`ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED`). It is a flow method: it
   returns the envelope and applies any session change (completing signup).
+- `resendVerification` targets the *pending signup* flow and needs no session;
+  the backend must set `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.
+  It throws `AllauthRequestError` (409) when nothing is pending and (429) when
+  rate limited.

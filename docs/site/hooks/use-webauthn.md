@@ -16,7 +16,24 @@ interface UseWebAuthnResult {
   login(): Promise<AuthFlowResponse>
   /** Re-authenticate using a passkey. */
   reauthenticate(): Promise<AuthFlowResponse>
+  /** Rename a registered passkey. */
+  rename(id: number, name: string): Promise<WebAuthnAuthenticator>
+  /** Remove registered passkeys. */
+  remove(ids: number[]): Promise<void>
+  /** Sign up passwordless: create the account, then register a passkey. */
+  signup(data: PasskeySignupData, name?: string): Promise<AuthFlowResponse>
 }
+```
+
+## Passwordless signup
+
+`signup` runs the full ceremony — create the account, fetch creation options,
+run the browser prompt, post the credential (requires
+`MFA_PASSKEY_SIGNUP_ENABLED = True` on the backend):
+
+```tsx
+const { signup } = useWebAuthn()
+const response = await signup({ email: 'new@example.com' }, 'My passkey')
 ```
 
 ## Example
@@ -53,3 +70,5 @@ function PasskeyLogin() {
   surfaces as the DOM exception from `@simplewebauthn/browser` — handle it in
   your UI.
 - The ceremony-completing calls are flow methods returning the envelope.
+- `rename` and `remove` are mutations (they throw `AllauthRequestError`);
+  refresh the authenticator list afterwards with `useMFA().reload()`.

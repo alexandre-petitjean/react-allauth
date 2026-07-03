@@ -4,11 +4,21 @@ All notable changes to this project are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Login by code: `useAuth().requestLoginCode(email)`, `confirmLoginCode(code)` and `resendLoginCode()`.
+- `useEmails().resendVerification()` — resend the pending signup verification email (requires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True` on the backend).
+- Passkey management: `useWebAuthn().rename(id, name)` and `remove(ids)`.
+- Passwordless signup: `useWebAuthn().signup(data, name?)` runs the full passkey signup ceremony.
+- Playground: login-by-code form and a resend button on the verify-email panel, both covered by e2e scenarios.
+
 ## [0.2.0] - 2026-07-02
 
 ### Added
 
-- `useMFA().authenticate(code)` and `useMFA().reauthenticate(code)` — complete an `mfa_authenticate` flow (TOTP or recovery code); the last gap in the headless API contract.
+- `useMFA().authenticate(code)` and `useMFA().reauthenticate(code)` — complete the 2FA login flow (TOTP or recovery code).
 - Documentation site (guides and full hook reference) deployed to GitHub Pages.
 - Playwright e2e suite driving the playground against the real django-allauth backend in CI (login, signup + email verification by code, session revocation).
 - Interactive playground: auth UI with a two-pane API inspector, plus email-verification, 2FA and session panels.

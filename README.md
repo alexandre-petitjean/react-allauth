@@ -70,12 +70,12 @@ export function App() {
 
 | Hook            | What it does                                            |
 | --------------- | ------------------------------------------------------ |
-| `useAuth`       | Session state plus login / signup / logout / reauth    |
+| `useAuth`       | Session state, login / signup / logout / reauth, login by code |
 | `useConfig`     | Fetch the one-shot allauth configuration               |
 | `usePassword`   | Change password and the reset-by-key flow              |
 | `useEmails`     | Manage email addresses and verification                |
 | `useMFA`        | TOTP, recovery codes and completing 2FA login          |
-| `useWebAuthn`   | Passkey registration and authentication                |
+| `useWebAuthn`   | Passkey signup, login, registration and management     |
 | `useSocialAuth` | Provider redirect / token login and connected accounts |
 | `useSessions`   | List and revoke active sessions                        |
 

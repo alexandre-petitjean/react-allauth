@@ -19,6 +19,28 @@ interface UseAuthResult {
   signup(data: SignupData): Promise<AuthFlowResponse>
   logout(): Promise<AuthFlowResponse>
   reauthenticate(data: ReauthenticateData): Promise<AuthFlowResponse>
+  /** Email a one-time login code; opens the login_by_code flow. */
+  requestLoginCode(email: string): Promise<AuthFlowResponse>
+  /** Complete the login_by_code flow with the emailed code. */
+  confirmLoginCode(code: string): Promise<AuthFlowResponse>
+  /** Resend the pending login code. Throws when none is pending or rate limited. */
+  resendLoginCode(): Promise<void>
+}
+```
+
+## Login by code
+
+Passwordless login with a one-time emailed code (requires
+`ACCOUNT_LOGIN_BY_CODE_ENABLED = True` on the backend):
+
+```tsx
+const { flow, requestLoginCode, confirmLoginCode } = useAuth()
+
+await requestLoginCode('me@example.com')
+// flow.current.id === 'login_by_code' — show the code form
+const response = await confirmLoginCode(code)
+if (response.errors?.length) {
+  // wrong or expired code
 }
 ```
 
