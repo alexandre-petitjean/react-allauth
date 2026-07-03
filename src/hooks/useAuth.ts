@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useAllauthContext } from './useAllauthContext'
+import { ensureOk } from '../errors'
 import type {
   AuthFlowResponse,
   AuthStatus,
@@ -23,6 +24,12 @@ export interface UseAuthResult {
   signup(data: SignupData): Promise<AuthFlowResponse>
   logout(): Promise<AuthFlowResponse>
   reauthenticate(data: ReauthenticateData): Promise<AuthFlowResponse>
+  /** Email a one-time login code; opens the `login_by_code` flow. */
+  requestLoginCode(email: string): Promise<AuthFlowResponse>
+  /** Complete the `login_by_code` flow with the emailed code. */
+  confirmLoginCode(code: string): Promise<AuthFlowResponse>
+  /** Resend the pending login code. Throws when none is pending or rate limited. */
+  resendLoginCode(): Promise<void>
 }
 
 /** Derive the high-level status from the raw session envelope. */
@@ -69,6 +76,22 @@ export function useAuth(): UseAuthResult {
     [client, applyResponse],
   )
 
+  const requestLoginCode = useCallback(
+    async (email: string) => applyResponse(await client.requestLoginCode(email)),
+    [client, applyResponse],
+  )
+
+  const confirmLoginCode = useCallback(
+    async (code: string) => applyResponse(await client.confirmLoginCode(code)),
+    [client, applyResponse],
+  )
+
+  // A resend reply is a bare 200 without session payload: applying it would
+  // clobber the pending-flow state, so this is a mutation, not a flow method.
+  const resendLoginCode = useCallback(async () => {
+    ensureOk(await client.resendLoginCode())
+  }, [client])
+
   const flow = useMemo(() => deriveFlow(session), [session])
 
   return {
@@ -80,5 +103,8 @@ export function useAuth(): UseAuthResult {
     signup,
     logout,
     reauthenticate,
+    requestLoginCode,
+    confirmLoginCode,
+    resendLoginCode,
   }
 }

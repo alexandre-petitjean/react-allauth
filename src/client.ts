@@ -140,6 +140,18 @@ export class AllauthClient {
     return this.request('POST', '/auth/reauthenticate', data)
   }
 
+  requestLoginCode(email: string): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/code/request', { email })
+  }
+
+  confirmLoginCode(code: string): Promise<AuthFlowResponse> {
+    return this.request('POST', '/auth/code/confirm', { code })
+  }
+
+  resendLoginCode(): Promise<AllauthResponse> {
+    return this.request('POST', '/auth/code/resend')
+  }
+
   getConfig(): Promise<AllauthResponse<Config>> {
     return this.request<Config>('GET', '/config')
   }
