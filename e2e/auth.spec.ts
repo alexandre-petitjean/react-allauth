@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
-import { latestCodeFor } from './helpers/mailpit'
+import { latestCodeFor, messageCountFor } from './helpers/mailpit'
 
 const SEEDED_EMAIL = 'user@example.com'
 const SEEDED_PASSWORD = 'playground-e2e-pass'
 
 async function logIn(page: Page, email: string, password: string) {
   const form = page.locator('form', {
-    has: page.getByRole('heading', { name: 'Log in' }),
+    has: page.getByRole('heading', { name: 'Log in', exact: true }),
   })
   await form.getByLabel('Email').fill(email)
   await form.getByLabel('Password').fill(password)
@@ -20,7 +20,9 @@ test('logs in and out with the seeded user', async ({ page }) => {
   await expect(page.getByText(/Signed in as/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Log out' }).click()
-  await expect(page.getByRole('heading', { name: 'Log in' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Log in', exact: true }),
+  ).toBeVisible()
 })
 
 test('shows the API error on a wrong password', async ({ page }) => {
@@ -47,9 +49,38 @@ test('signs up and verifies the email by code', async ({ page }) => {
   })
   await expect(verifyForm).toBeVisible()
 
+  // Resend and verify with the freshest code: two messages must arrive.
+  await expect
+    .poll(() => messageCountFor(email))
+    .toBeGreaterThanOrEqual(1)
+  await verifyForm.getByRole('button', { name: 'Resend code' }).click()
+  await expect.poll(() => messageCountFor(email)).toBeGreaterThanOrEqual(2)
+
   const code = await latestCodeFor(email)
   await verifyForm.getByLabel('Code').fill(code)
   await verifyForm.getByRole('button', { name: 'Verify' }).click()
+
+  await expect(page.getByText(/Signed in as/)).toBeVisible()
+})
+
+test('logs in with a one-time code', async ({ page }) => {
+  await page.goto('/')
+
+  const form = page.locator('form', {
+    has: page.getByRole('heading', { name: 'Log in by code' }),
+  })
+  const before = await messageCountFor(SEEDED_EMAIL)
+  await form.getByLabel('Email').fill(SEEDED_EMAIL)
+  await form.getByRole('button', { name: 'Send code' }).click()
+
+  await expect(form.getByLabel('Code')).toBeVisible()
+  await expect
+    .poll(() => messageCountFor(SEEDED_EMAIL))
+    .toBeGreaterThanOrEqual(before + 1)
+
+  const code = await latestCodeFor(SEEDED_EMAIL)
+  await form.getByLabel('Code').fill(code)
+  await form.getByRole('button', { name: 'Confirm code' }).click()
 
   await expect(page.getByText(/Signed in as/)).toBeVisible()
 })

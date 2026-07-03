@@ -1,5 +1,6 @@
 import { useAuth } from 'react-allauth'
 import { CredentialsForm } from './CredentialsForm'
+import { LoginByCodeForm } from './LoginByCodeForm'
 import { MfaAuthenticateForm } from './MfaAuthenticateForm'
 import { SessionsPanel } from './SessionsPanel'
 import { VerifyEmailForm } from './VerifyEmailForm'
@@ -43,6 +44,7 @@ export function AuthDemo() {
         </>
       )}
       <CredentialsForm title="Log in" submitLabel="Log in" onSubmit={login} />
+      <LoginByCodeForm />
       <CredentialsForm title="Sign up" submitLabel="Sign up" onSubmit={signup} />
     </div>
   )

@@ -4,7 +4,7 @@ import type { AllauthError } from 'react-allauth'
 
 /** Enter the verification code emailed after signup (verification by code). */
 export function VerifyEmailForm() {
-  const { verify } = useEmails()
+  const { verify, resendVerification } = useEmails()
   const [code, setCode] = useState('')
   const [errors, setErrors] = useState<AllauthError[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -18,6 +18,15 @@ export function VerifyEmailForm() {
       setErrors(response.errors ?? [])
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleResend() {
+    setErrors([])
+    try {
+      await resendVerification()
+    } catch {
+      setErrors([{ message: 'Could not resend the code.', code: 'resend_failed' }])
     }
   }
 
@@ -36,6 +45,13 @@ export function VerifyEmailForm() {
       </label>
       <button className="button" type="submit" disabled={submitting}>
         {submitting ? '…' : 'Verify'}
+      </button>
+      <button
+        className="button"
+        type="button"
+        onClick={() => void handleResend()}
+      >
+        Resend code
       </button>
       {errors.length > 0 && (
         <ul className="form-errors">

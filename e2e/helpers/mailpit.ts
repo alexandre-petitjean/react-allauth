@@ -5,6 +5,17 @@ interface MailpitMessageSummary {
   To: { Address: string }[]
 }
 
+/** Count the Mailpit messages sent to `email`. */
+export async function messageCountFor(email: string): Promise<number> {
+  const search = await fetch(
+    `${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
+  )
+  const { messages } = (await search.json()) as {
+    messages: MailpitMessageSummary[]
+  }
+  return messages.length
+}
+
 /**
  * Return the verification code from the most recent Mailpit message sent to
  * `email`. Polls because delivery is asynchronous relative to the signup call.
