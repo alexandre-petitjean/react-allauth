@@ -39,7 +39,14 @@ interface WebAuthnRequestOptions {
 export interface AllauthClientOptions {
   /** Base URL of the django-allauth server. */
   baseUrl: string
+  /**
+   * Ordered cookie names to inspect for the browser CSRF token. The first
+   * non-empty cookie wins. Defaults to Django's `csrftoken`.
+   */
+  csrfCookieNames?: readonly string[]
 }
+
+const DEFAULT_CSRF_COOKIE_NAMES = ['csrftoken'] as const
 
 /** Build the versioned browser endpoint prefix, e.g. `<base>/_allauth/browser/v1`. */
 export function allauthV1Url(baseUrl: string): string {
@@ -49,10 +56,14 @@ export function allauthV1Url(baseUrl: string): string {
 /** Read a cookie value by name from `document.cookie`. */
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null
-  const match = document.cookie.match(
-    new RegExp(`(?:^|;\\s*)${name}=([^;]*)`),
-  )
-  return match ? decodeURIComponent(match[1]) : null
+  const prefix = `${name}=`
+  for (const cookie of document.cookie.split(';')) {
+    const trimmed = cookie.trim()
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length))
+    }
+  }
+  return null
 }
 
 /**
@@ -61,13 +72,25 @@ function readCookie(name: string): string | null {
  */
 export class AllauthClient {
   private readonly options: AllauthClientOptions
+  private readonly csrfCookieNames: readonly string[]
 
   constructor(options: AllauthClientOptions) {
     this.options = options
+    this.csrfCookieNames = options.csrfCookieNames
+      ? [...options.csrfCookieNames]
+      : DEFAULT_CSRF_COOKIE_NAMES
   }
 
   private endpoint(path: string): string {
     return `${allauthV1Url(this.options.baseUrl)}${path}`
+  }
+
+  private readCsrfToken(): string | null {
+    for (const cookieName of this.csrfCookieNames) {
+      const token = readCookie(cookieName)
+      if (token) return token
+    }
+    return null
   }
 
   async request<TData = AuthenticationData>(
@@ -78,7 +101,7 @@ export class AllauthClient {
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (method !== 'GET') {
-      const csrfToken = readCookie('csrftoken')
+      const csrfToken = this.readCsrfToken()
       if (csrfToken) headers['X-CSRFToken'] = csrfToken
     }
 
@@ -303,7 +326,7 @@ export class AllauthClient {
       callback_url: callbackUrl,
       process,
     }
-    const csrfToken = readCookie('csrftoken')
+    const csrfToken = this.readCsrfToken()
     if (csrfToken) fields.csrfmiddlewaretoken = csrfToken
 
     for (const [name, value] of Object.entries(fields)) {

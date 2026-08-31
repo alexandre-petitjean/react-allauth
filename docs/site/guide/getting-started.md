@@ -37,6 +37,10 @@ export function App() {
 Use an empty `baseUrl` (`""`) when the API is served same-origin, e.g. behind
 a dev-server proxy — see [Backend configuration](./backend).
 
+If Django overrides `CSRF_COOKIE_NAME`, pass the name or ordered production and
+development names through `csrfCookieNames`; the backend guide includes a
+[`__Secure-csrftoken` example](./backend#custom-csrf-cookie-names).
+
 ## Use the hooks
 
 ```tsx
