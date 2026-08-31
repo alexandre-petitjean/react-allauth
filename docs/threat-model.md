@@ -10,8 +10,9 @@ application and its operators.
 ## In scope — what the library takes care of
 
 - **CSRF wiring.** For browser clients, the CSRF token is read from the
-  `csrftoken` cookie and sent as the `X-CSRFToken` header on every mutating
-  request, matching django-allauth's expectations.
+  configured cookie names (`csrftoken` by default) and sent as the
+  `X-CSRFToken` header on every mutating request, matching django-allauth's
+  expectations.
 - **Cookie-based session defaults.** Requests are sent with
   `credentials: 'include'` so the browser manages the `HttpOnly`, server-set
   session cookie. The session secret is never read or handled in JavaScript.

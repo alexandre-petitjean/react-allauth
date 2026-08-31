@@ -82,12 +82,44 @@ CSRF_COOKIE_SECURE = True
 ```
 
 ::: warning
-The client reads the `csrftoken` cookie to send the `X-CSRFToken` header on
-mutating requests. Cross-origin, this requires the CSRF cookie to be readable
-from your front-end origin's requests — prefer the same-origin setup when you
-can; it is simpler and has a smaller attack surface. See the project's
+The client reads the configured CSRF cookie to send the `X-CSRFToken` header
+on mutating requests. Cross-origin, this requires the CSRF cookie to be
+readable from your front-end origin's requests — prefer the same-origin setup
+when you can; it is simpler and has a smaller attack surface. See the project's
 [threat model](https://github.com/alexandre-petitjean/react-allauth/blob/master/docs/threat-model.md).
 :::
+
+## Custom CSRF cookie names
+
+Django uses `csrftoken` by default. Production deployments can override
+`CSRF_COOKIE_NAME`, for example to use the browser-enforced `__Secure-` prefix:
+
+```python
+CSRF_COOKIE_NAME = "__Secure-csrftoken"
+CSRF_COOKIE_SECURE = True
+# react-allauth reads this cookie to build the X-CSRFToken header.
+CSRF_COOKIE_HTTPONLY = False
+```
+
+Pass the production name and any development fallback to `AllauthProvider` in
+priority order. The first non-empty cookie wins:
+
+```tsx
+<AllauthProvider
+  baseUrl="https://api.example.com"
+  csrfCookieNames={["__Secure-csrftoken", "csrftoken"]}
+>
+  <App />
+</AllauthProvider>
+```
+
+Omitting `csrfCookieNames` preserves the default `csrftoken` behavior. The
+same resolver is used for JSON request headers and social-provider redirect
+forms.
+
+`__Secure-` cookies require HTTPS and the `Secure` attribute, while still
+allowing a shared `Domain` for front-end and API subdomains. `__Host-` cookies
+forbid `Domain`, so they are not suitable for that cross-subdomain setup.
 
 ## Email verification and password reset
 

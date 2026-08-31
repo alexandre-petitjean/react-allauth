@@ -85,6 +85,7 @@ describe('useSocialAuth', () => {
     expect(
       (form?.querySelector('[name="provider"]') as HTMLInputElement | null)?.value,
     ).toBe('google')
+    expect(form?.querySelector('[name="csrfmiddlewaretoken"]')).toBeNull()
     submit.mockRestore()
     form?.remove()
   })
