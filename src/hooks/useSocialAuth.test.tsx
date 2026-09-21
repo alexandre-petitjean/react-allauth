@@ -69,9 +69,13 @@ describe('useSocialAuth', () => {
     server.use(
       http.get(providersPath, () => HttpResponse.json({ status: 200, data: [] })),
     )
+    // The form is removed once submitted, so capture it from the submit call.
+    const submitted: { form: HTMLFormElement | null } = { form: null }
     const submit = vi
       .spyOn(HTMLFormElement.prototype, 'submit')
-      .mockImplementation(() => {})
+      .mockImplementation(() => {
+        submitted.form = document.querySelector('form')
+      })
 
     const { result } = renderHook(() => useSocialAuth(), { wrapper })
 
@@ -80,14 +84,17 @@ describe('useSocialAuth', () => {
     })
 
     expect(submit).toHaveBeenCalledOnce()
-    const form = document.querySelector('form')
-    expect(form?.action).toContain('/auth/provider/redirect')
+    expect(submitted.form?.action).toContain('/auth/provider/redirect')
     expect(
-      (form?.querySelector('[name="provider"]') as HTMLInputElement | null)?.value,
+      (
+        submitted.form?.querySelector('[name="provider"]') as
+          | HTMLInputElement
+          | null
+      )?.value,
     ).toBe('google')
-    expect(form?.querySelector('[name="csrfmiddlewaretoken"]')).toBeNull()
+    expect(submitted.form?.querySelector('[name="csrfmiddlewaretoken"]')).toBeNull()
+    expect(document.querySelector('form')).toBeNull()
     submit.mockRestore()
-    form?.remove()
   })
 
   it('returns no connections without calling the API when anonymous', async () => {
