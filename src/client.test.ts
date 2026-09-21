@@ -103,9 +103,13 @@ describe('AllauthClient.request', () => {
       csrfCookieNames: ['__Secure-csrftoken', 'csrftoken'],
     })
     document.cookie = '__Secure-csrftoken=secure-token; Secure; path=/'
+    // The form is removed once submitted, so capture it from the submit call.
+    const submitted: { form: HTMLFormElement | null } = { form: null }
     const submit = vi
       .spyOn(HTMLFormElement.prototype, 'submit')
-      .mockImplementation(() => {})
+      .mockImplementation(() => {
+        submitted.form = document.querySelector('form')
+      })
 
     configuredClient.redirectToProvider(
       'keycloak',
@@ -113,16 +117,32 @@ describe('AllauthClient.request', () => {
       'login',
     )
 
-    const form = document.querySelector('form')
     expect(
       (
-        form?.querySelector(
+        submitted.form?.querySelector(
           '[name="csrfmiddlewaretoken"]',
         ) as HTMLInputElement | null
       )?.value,
     ).toBe('secure-token')
+    // The form is dropped once submitted: no CSRF token left in the DOM.
+    expect(document.querySelector('form')).toBeNull()
     submit.mockRestore()
-    form?.remove()
+  })
+
+  it('ignores a CSRF cookie whose value is not valid percent-encoding', async () => {
+    let seen: string | null = null
+    server.use(
+      http.post(`${v1}/auth/login`, ({ request }) => {
+        seen = request.headers.get('X-CSRFToken')
+        return HttpResponse.json({ status: 200, data: {} })
+      }),
+    )
+    document.cookie = 'csrftoken=broken%zz'
+
+    await expect(client.request('POST', '/auth/login', {})).resolves.toMatchObject(
+      { status: 200 },
+    )
+    expect(seen).toBeNull()
   })
 
   it('only sets Content-Type when a body is sent', async () => {

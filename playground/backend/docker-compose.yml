@@ -17,8 +17,10 @@ services:
       DJANGO_SUPERUSER_PASSWORD: admin
       PLAYGROUND_USER_EMAIL: user@example.com
       PLAYGROUND_USER_PASSWORD: playground-e2e-pass
+    # Loopback-only: the playground runs with DEBUG=True, a dummy SECRET_KEY
+    # and seeded admin/admin credentials — never expose it on the network.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - .:/code
     depends_on:
@@ -28,5 +30,5 @@ services:
     image: axllent/mailpit:latest
     restart: unless-stopped
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"

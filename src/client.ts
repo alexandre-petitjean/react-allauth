@@ -53,14 +53,23 @@ export function allauthV1Url(baseUrl: string): string {
   return `${baseUrl}/_allauth/browser/v1`
 }
 
-/** Read a cookie value by name from `document.cookie`. */
+/**
+ * Read a cookie value by name from `document.cookie`. A value that is not
+ * valid percent-encoding is treated as absent rather than thrown: a malformed
+ * cookie (anyone able to set one on the domain can plant it) must not break
+ * every mutating request.
+ */
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null
   const prefix = `${name}=`
   for (const cookie of document.cookie.split(';')) {
     const trimmed = cookie.trim()
     if (trimmed.startsWith(prefix)) {
-      return decodeURIComponent(trimmed.slice(prefix.length))
+      try {
+        return decodeURIComponent(trimmed.slice(prefix.length))
+      } catch {
+        return null
+      }
     }
   }
   return null
@@ -337,8 +346,12 @@ export class AllauthClient {
       form.appendChild(input)
     }
 
+    form.style.display = 'none'
     document.body.appendChild(form)
     form.submit()
+    // Submission is already queued: drop the node so the CSRF token does not
+    // linger in the DOM if the navigation is cancelled.
+    form.remove()
   }
 
   getWebAuthnCreationOptions(): Promise<AllauthResponse<WebAuthnCreationOptions>> {
