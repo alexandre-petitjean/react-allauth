@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Mirror `min-release-age=7` from .npmrc.
+    cooldown:
+      default-days: 7
     groups:
       dev-dependencies:
         dependency-type: development
