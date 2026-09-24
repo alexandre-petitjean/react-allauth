@@ -6,6 +6,8 @@ and the conventions the project follows.
 ## Prerequisites
 
 - Node.js 20 or newer (CI runs on 20 and 22).
+- npm 11.10 or newer (`npm install -g npm@11`), so the `min-release-age=7`
+  rule in `.npmrc` is applied: older npm silently ignores it.
 - Docker, if you want to run the playground backend.
 - [pre-commit](https://pre-commit.com/), for the git hooks.
 
